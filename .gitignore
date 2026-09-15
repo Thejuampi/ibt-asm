@@ -1,0 +1,16 @@
+/bin/
+/dist/
+/compare/
+__pycache__/
+*.py[cod]
+*.obj
+*.res
+*.lst
+*.log
+lpk_test.txt
+lpk_prof.txt
+.vs/
+.vscode/
+*.user
+*.suo
+

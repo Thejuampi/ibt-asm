@@ -1,0 +1,9 @@
+#include <winuser.h>
+1 ICON "res\\app.ico"
+#ifdef PACKED_RESOURCES
+200 BITMAP "res\\flame4.bmp"
+#else
+200 BITMAP "res\\flame4-rle.bmp"
+#endif
+201 BITMAP "res\\coffee4.bmp"
+1 24 "app.manifest"
