@@ -1,8 +1,4 @@
-theme_ux_init:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 28h
+PROC_FRAME theme_ux_init, 28h, rbx
     lea rcx, [szUxTheme]
     call GetModuleHandleW
     test rax, rax
@@ -26,15 +22,9 @@ theme_ux_init:
     call GetProcAddress
     mov [fnFlushMenu], rax
 .o:
-    add rsp, 28h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 28h, rbx
 
-theme_appmode:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 30h
+PROC_FRAME theme_appmode, 30h
     mov rax, [fnSetAppMode]
     test rax, rax
     jz .fl
@@ -46,13 +36,9 @@ theme_appmode:
     jz .o
     call rax
 .o:
-    leave
-    ret
+    ENDPROC
 
-theme_brushes:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 30h
+PROC_FRAME theme_brushes, 30h
     mov rcx, [hBrBg]
     test rcx, rcx
     jz .e1
@@ -77,14 +63,9 @@ theme_brushes:
     mov ecx, COL_EDIT
     call CreateSolidBrush
     mov [hBrEdit], rax
-    leave
-    ret
+    ENDPROC
 
-theme_window:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 38h
+PROC_FRAME theme_window, 38h, rbx
     test rcx, rcx
     jz .out
     mov rbx, rcx
@@ -109,15 +90,9 @@ theme_window:
     mov r9d, 4
     call DwmSetWindowAttribute
 .out:
-    add rsp, 38h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 38h, rbx
 
-theme_title:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 40h
+PROC_FRAME theme_title, 40h
     mov dword [rsp+24h], 1
     mov rcx, [hMain]
     test rcx, rcx
@@ -141,14 +116,9 @@ theme_title:
     mov r9d, 4
     call DwmSetWindowAttribute
 .o:
-    leave
-    ret
+    ENDPROC
 
-theme_onchild:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 0A8h
+PROC_FRAME theme_onchild, 0A8h, rbx
     mov rbx, rcx
     lea rdx, [rsp+60h]
     mov r8d, 32
@@ -192,17 +162,9 @@ theme_onchild:
     call SetWindowTheme
 .ok:
     mov eax, 1
-    add rsp, 0A8h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 0A8h, rbx
 
-theme_btn_style:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push rsi
-    sub rsp, 40h
+PROC_FRAME theme_btn_style, 40h, rbx, rsi
     test rcx, rcx
     jz .o
     mov rbx, rcx
@@ -227,16 +189,9 @@ theme_btn_style:
     mov r8d, 1
     call round_button
 .o:
-    add rsp, 40h
-    pop rsi
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 40h, rbx, rsi
 
-theme_btns:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 30h
+PROC_FRAME theme_btns, 30h
     mov rcx, [hBtnStart]
     xor edx, edx
     call theme_btn_style
@@ -249,13 +204,9 @@ theme_btns:
     mov rcx, [hCoffeeWnd]
     xor edx, edx
     call coffee_theme_keep
-    leave
-    ret
+    ENDPROC
 
-theme_free:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 30h
+PROC_FRAME theme_free, 30h
     mov rcx, [hBrBg]
     test rcx, rcx
     jz .e1
@@ -274,13 +225,9 @@ theme_free:
     mov qword [hBrBg], 0
     mov qword [hBrPanel], 0
     mov qword [hBrEdit], 0
-    leave
-    ret
+    ENDPROC
 
-theme_apply:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 30h
+PROC_FRAME theme_apply, 30h
     call theme_brushes
     call theme_appmode
     call theme_title
@@ -327,14 +274,9 @@ theme_apply:
     xor r9d, r9d
     call RedrawWindow
 .o:
-    leave
-    ret
+    ENDPROC
 
-theme_cmb_style:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 38h
+PROC_FRAME theme_cmb_style, 38h, rbx
     test rcx, rcx
     jz .o
     mov rbx, rcx
@@ -355,27 +297,16 @@ theme_cmb_style:
     mov qword [rsp+30h], SWP_NOSIZE|SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED
     call SetWindowPos
 .o:
-    add rsp, 38h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 38h, rbx
 
-theme_droplist:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 20h
+PROC_FRAME theme_droplist, 20h
     mov rcx, [hCmbStress]
     call theme_combo_list
     mov rcx, [hCmbThr]
     call theme_combo_list
-    leave
-    ret
+    ENDPROC
 
-theme_combo_list:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 68h
+PROC_FRAME theme_combo_list, 68h, rbx
     test rcx, rcx
     jz .o
     mov rbx, rcx
@@ -407,15 +338,9 @@ theme_combo_list:
     lea r8, [szEmpty]
     call theme_list_rounded
 .o:
-    add rsp, 68h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 68h, rbx
 
-theme_hook:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 30h
+PROC_FRAME theme_hook, 30h
     mov rcx, [hEdtTimes]
     lea rdx, [control_sub]
     mov r8d, 2
@@ -436,14 +361,9 @@ theme_hook:
     mov r8d, 3
     xor r9d, r9d
     call SetWindowSubclass
-    leave
-    ret
+    ENDPROC
 
-theme_edge:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 38h
+PROC_FRAME theme_edge, 38h, rbx
     test rcx, rcx
     jz .o
     mov rbx, rcx
@@ -463,17 +383,9 @@ theme_edge:
     mov qword [rsp+30h], SWP_NOSIZE|SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED
     call SetWindowPos
 .o:
-    add rsp, 38h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 38h, rbx
 
-control_sub:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push r12
-    sub rsp, 0E0h
+PROC_FRAME control_sub, 0E0h, rbx, r12
     mov [rbp+16], rcx
     mov [rbp+24], rdx
     mov [rbp+32], r8
@@ -621,8 +533,4 @@ control_sub:
     call EndPaint
     xor eax, eax
 .out:
-    add rsp, 0E0h
-    pop r12
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 0E0h, rbx, r12

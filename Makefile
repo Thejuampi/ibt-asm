@@ -20,7 +20,7 @@ PACKED_RESOURCE := $(BIN_DIR)/ibt-packed.res
 PACK_SOURCE := $(BIN_DIR)/IntelBurnTest-packsource.exe
 PACKED_EXE := $(DIST_DIR)/IntelBurnTest.exe
 
-ASM_SOURCES := ibt.asm ibt_ui.inc ibt_theme.inc ibt_lpk.inc bench_lib.inc
+ASM_SOURCES := ibt.asm ibt_macros.inc ibt_ui.inc ibt_theme.inc ibt_lpk.inc bench_lib.inc
 RESOURCE_SOURCES := ibt.rc app.manifest res/app.ico res/coffee4.bmp \
                     res/flame4-rle.bmp res/flame4.bmp
 LIBS := kernel32.lib user32.lib gdi32.lib comctl32.lib \
@@ -45,8 +45,9 @@ $(OBJECT): $(ASM_SOURCES) | $(BIN_DIR)
 $(RESOURCE): $(RESOURCE_SOURCES) | $(BIN_DIR)
 	$(RC) /nologo /fo "$@" ibt.rc
 
-$(TARGET): $(OBJECT) $(RESOURCE)
+$(TARGET): $(OBJECT) $(RESOURCE) tools/benchcheck.py
 	$(LINKER) $(LINK_FLAGS) /OUT:"$@" $(OBJECT) $(RESOURCE) $(LIBS)
+	$(PYTHON) tools/benchcheck.py "$@"
 
 $(SELFTEST_OBJECT): $(ASM_SOURCES) | $(BIN_DIR)
 	$(NASM) -DSELFTEST=1 -f win64 -l "$(BIN_DIR)/ibt-selftest.lst" -o "$@" ibt.asm
@@ -60,8 +61,9 @@ selftest: $(SELFTEST_EXE)
 $(PACKED_RESOURCE): $(RESOURCE_SOURCES) | $(BIN_DIR)
 	$(RC) /nologo /d PACKED_RESOURCES /fo "$@" ibt.rc
 
-$(PACK_SOURCE): $(OBJECT) $(PACKED_RESOURCE)
+$(PACK_SOURCE): $(OBJECT) $(PACKED_RESOURCE) tools/benchcheck.py
 	$(LINKER) $(LINK_FLAGS) /OUT:"$@" $(OBJECT) $(PACKED_RESOURCE) $(LIBS)
+	$(PYTHON) tools/benchcheck.py "$@"
 
 packed: $(PACK_SOURCE) | $(DIST_DIR)
 	copy /Y "bin\IntelBurnTest-packsource.exe" "dist\IntelBurnTest.exe" >nul
