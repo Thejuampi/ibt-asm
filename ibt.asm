@@ -5,6 +5,8 @@ default rel
     %define SELFTEST 0
 %endif
 
+%include "ibt_macros.inc"
+
 extern ExitProcess
 extern GetModuleHandleW
 extern GetModuleFileNameW
@@ -707,11 +709,7 @@ uiClasses:
 section .text
 global start
 
-start:
-    push rbp
-    mov rbp, rsp
-    and rsp, -16
-    sub rsp, 80h
+PROC_FRAME_ALIGNED start, 80h
     xor ecx, ecx
     call GetModuleHandleW
     mov [hInst], rax
@@ -876,12 +874,7 @@ start:
     xor ecx, ecx
     call ExitProcess
 
-ui_init:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push rsi
-    sub rsp, 80h
+PROC_FRAME ui_init, 80h, rbx, rsi
     lea rcx, [iccex]
     mov dword [rcx], 8
     mov dword [rcx+4], ICC_WIN95_CLASSES|ICC_STANDARD_CLASSES
@@ -908,11 +901,7 @@ ui_init:
     mov r8d, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN|RDW_UPDATENOW
     xor r9d, r9d
     call RedrawWindow
-    add rsp, 80h
-    pop rsi
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 80h, rbx, rsi
 
 %include "ibt_ui.inc"
 %include "ibt_theme.inc"
@@ -930,12 +919,7 @@ round_button:
 round_small:
     mov eax, 8
 
-round_window:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push r12
-    sub rsp, 40h
+PROC_FRAME round_window, 40h, rbx, r12
     mov rbx, rcx
     mov r12d, eax
     lea rdx, [rsp+30h]
@@ -958,30 +942,16 @@ round_window:
     xor edx, edx
     mov r8d, 1
     call InvalidateRect
-    add rsp, 40h
-    pop r12
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 40h, rbx, r12
 
-dialog_button_init:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 28h
+PROC_FRAME dialog_button_init, 28h, rbx
     mov rbx, rcx
     call apply_font
     mov rcx, rbx
     call round_button
-    add rsp, 28h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 28h, rbx
 
-coffee_init:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 30h
+PROC_FRAME coffee_init, 30h
     mov edx, STM_SETIMAGE
     mov r8d, IMAGE_BITMAP
     mov r9, [hCoffeeBmp]
@@ -991,8 +961,7 @@ coffee_init:
     mov r8d, 4
     xor r9d, r9d
     call SetWindowSubclass
-    leave
-    ret
+    ENDPROC
 
 coffee_theme_keep:
     jmp round_button
@@ -1015,10 +984,7 @@ round_rect_draw:
     add rsp, 38h
     ret
 
-round_controls:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 20h
+PROC_FRAME round_controls, 20h
     mov rcx, [hEdtTimes]
     call round_small
     mov rcx, [hEdtMB]
@@ -1033,39 +999,21 @@ round_controls:
     call round_small
     mov rcx, [hLstRes]
     call round_small
-    leave
-    ret
+    ENDPROC
 
-theme_apply_rounded:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 20h
+PROC_FRAME theme_apply_rounded, 20h
     call theme_apply
     call round_controls
-    leave
-    ret
+    ENDPROC
 
-theme_list_rounded:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    sub rsp, 28h
+PROC_FRAME theme_list_rounded, 28h, rbx
     mov rbx, rcx
     call SetWindowTheme
     mov rcx, rbx
     call round_small
-    add rsp, 28h
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 28h, rbx
 
-flame_sub:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push r12
-    push r13
-    sub rsp, 0A8h
+PROC_FRAME flame_sub, 0A8h, rbx, r12, r13
     mov [rbp+16], rcx
     mov [rbp+24], rdx
     mov [rbp+32], r8
@@ -1129,9 +1077,4 @@ flame_sub:
     call EndPaint
     xor eax, eax
 .out:
-    add rsp, 0A8h
-    pop r13
-    pop r12
-    pop rbx
-    pop rbp
-    ret
+    ENDPROC_SAVED 0A8h, rbx, r12, r13

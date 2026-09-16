@@ -9,7 +9,10 @@ from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BIN = os.path.join(ROOT, "bin")
-EXE = os.environ.get("IBT_EXE", os.path.join(BIN, "IntelBurnTest.exe"))
+EXE = os.path.abspath(
+    os.environ.get("IBT_EXE", os.path.join(BIN, "IntelBurnTest.exe"))
+)
+RUN_DIR = os.path.dirname(EXE)
 OUT = os.path.join(ROOT, "compare", "visual-qa")
 
 u = ctypes.windll.user32
@@ -174,7 +177,7 @@ def main():
         capture_output=True,
         text=True,
     )
-    proc = subprocess.Popen([EXE], cwd=BIN)
+    proc = subprocess.Popen([EXE], cwd=RUN_DIR)
     main_hwnd = wait_exact("IntelBurnTest v3.00 - by Thejuampi [Idle]", proc.pid)
     if not main_hwnd:
         proc.kill()
@@ -254,7 +257,7 @@ def main():
     time.sleep(0.25)
     save_window("08-finished", main_hwnd)
 
-    log_path = os.path.join(BIN, "results.log")
+    log_path = os.path.join(RUN_DIR, "results.log")
     if not os.path.isfile(log_path) or os.path.getsize(log_path) < 80:
         proc.kill()
         raise SystemExit("RESULT_LOG_NOT_WRITTEN")

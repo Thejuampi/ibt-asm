@@ -56,6 +56,7 @@ make NASM=C:\tools\nasm.exe PYTHON=py
 
 ```text
 ibt.asm             Win64 entry point, state, resources, and shared definitions
+ibt_macros.inc      zero-overhead readability helpers for Win64 procedures
 ibt_ui.inc          window procedure and application behavior
 ibt_theme.inc       dark-theme and custom-control drawing
 ibt_lpk.inc         benchmark orchestration and numerical routines
@@ -63,6 +64,13 @@ bench_lib.inc       optimized matrix kernels
 res/                minimal source and compiled graphical assets
 tools/              asset generation, alignment checks, size report, and visual QA
 ```
+
+## Assembly style
+
+Ordinary UI and control-flow routines use `PROC_FRAME name, stack, saved...`
+with `ENDPROC` or `ENDPROC_SAVED` to make the Win64 frame contract visible on
+one line. Simple bottom-tested loops use `DO` / `WHILE jcc`; the x86 condition
+remains explicit. Numerical kernels stay as direct instructions and labels.
 
 ## Performance validation
 

@@ -20,7 +20,7 @@ PACKED_RESOURCE := $(BIN_DIR)/ibt-packed.res
 PACK_SOURCE := $(BIN_DIR)/IntelBurnTest-packsource.exe
 PACKED_EXE := $(DIST_DIR)/IntelBurnTest.exe
 
-ASM_SOURCES := ibt.asm ibt_ui.inc ibt_theme.inc ibt_lpk.inc bench_lib.inc
+ASM_SOURCES := ibt.asm ibt_macros.inc ibt_ui.inc ibt_theme.inc ibt_lpk.inc bench_lib.inc
 RESOURCE_SOURCES := ibt.rc app.manifest res/app.ico res/coffee4.bmp \
                     res/flame4-rle.bmp res/flame4.bmp
 LIBS := kernel32.lib user32.lib gdi32.lib comctl32.lib \
