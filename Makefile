@@ -45,8 +45,9 @@ $(OBJECT): $(ASM_SOURCES) | $(BIN_DIR)
 $(RESOURCE): $(RESOURCE_SOURCES) | $(BIN_DIR)
 	$(RC) /nologo /fo "$@" ibt.rc
 
-$(TARGET): $(OBJECT) $(RESOURCE)
+$(TARGET): $(OBJECT) $(RESOURCE) tools/benchcheck.py
 	$(LINKER) $(LINK_FLAGS) /OUT:"$@" $(OBJECT) $(RESOURCE) $(LIBS)
+	$(PYTHON) tools/benchcheck.py "$@"
 
 $(SELFTEST_OBJECT): $(ASM_SOURCES) | $(BIN_DIR)
 	$(NASM) -DSELFTEST=1 -f win64 -l "$(BIN_DIR)/ibt-selftest.lst" -o "$@" ibt.asm
@@ -60,8 +61,9 @@ selftest: $(SELFTEST_EXE)
 $(PACKED_RESOURCE): $(RESOURCE_SOURCES) | $(BIN_DIR)
 	$(RC) /nologo /d PACKED_RESOURCES /fo "$@" ibt.rc
 
-$(PACK_SOURCE): $(OBJECT) $(PACKED_RESOURCE)
+$(PACK_SOURCE): $(OBJECT) $(PACKED_RESOURCE) tools/benchcheck.py
 	$(LINKER) $(LINK_FLAGS) /OUT:"$@" $(OBJECT) $(PACKED_RESOURCE) $(LIBS)
+	$(PYTHON) tools/benchcheck.py "$@"
 
 packed: $(PACK_SOURCE) | $(DIST_DIR)
 	copy /Y "bin\IntelBurnTest-packsource.exe" "dist\IntelBurnTest.exe" >nul

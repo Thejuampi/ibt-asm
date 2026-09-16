@@ -304,6 +304,8 @@ wndproc:
     je .drawcmb
     cmp eax, IDC_THREADS
     je .drawcmb
+    cmp eax, IDC_RESULTCARD
+    je .drawresult
     jmp .drawdef
 .drawbtn:
     push rbp
@@ -503,6 +505,12 @@ wndproc:
     pop r12
     pop rbx
     pop rbp
+    ret
+.drawresult:
+    sub rsp, 28h
+    mov rcx, r9
+    call result_draw
+    add rsp, 28h
     ret
 .drawdef:
     jmp DefWindowProcW
@@ -996,6 +1004,11 @@ PROC_FRAME fonts_create, 40h
     lea rcx, [lf]
     call CreateFontIndirectW
     mov [hFontBold], rax
+    lea rax, [lf]
+    mov dword [rax+LOGFONTW.lfHeight], -30
+    lea rcx, [lf]
+    call CreateFontIndirectW
+    mov [hFontMetric], rax
     ENDPROC
 
 PROC_FRAME bitmaps_load, 38h, rbx
@@ -1034,6 +1047,11 @@ PROC_FRAME bitmaps_free, 28h, rbx
     jz .n2
     call DeleteObject
 .n2:
+    mov rcx, [hFontMetric]
+    test rcx, rcx
+    jz .n3
+    call DeleteObject
+.n3:
     xor ebx, ebx
     DO
     lea rax, [hFlame]
@@ -1417,12 +1435,18 @@ PROC_FRAME start_burn, 48h, rbx
     mov rcx, rax
     mov edx, 1
     call SetThreadPriority
-    call lists_clear
     mov dword [haveResid], 0
     mov dword [failed], 0
     mov dword [passCount], 0
+    mov dword [resultIndex], 0
     mov dword [lpAllocFail], 0
     mov byte [firstResid], 0
+    mov word [resultTime], 0
+    mov word [resultSpeed], 0
+    mov word [resultResid], 0
+    mov rcx, [hBtnStart]
+    lea rdx, [szStart]
+    call SetWindowTextW
     call log_open
     xor ecx, ecx
     xor edx, edx
@@ -1441,12 +1465,14 @@ PROC_FRAME start_burn, 48h, rbx
 .throk:
     mov [hProc], rax
     mov dword [running], 1
+    mov dword [resultState], RESULT_RUNNING
     call GetTickCount64
     mov [tick0], rax
     lea rcx, [szPreparing]
     call title_status
     mov ecx, 1
     call ui_running
+    call result_invalidate
 .out:
     ENDPROC_SAVED 48h, rbx
 
@@ -1454,6 +1480,7 @@ PROC_FRAME stop_burn, 30h
     cmp dword [running], 0
     je .out
     mov dword [lpStop], 1
+    mov dword [running], 0
     mov rcx, [hProc]
     test rcx, rcx
     jz .cl
@@ -1461,7 +1488,6 @@ PROC_FRAME stop_burn, 30h
     call WaitForSingleObject
 .cl:
     call cleanup_proc
-    mov dword [running], 0
     lea rcx, [szStoppedA]
     call log_result
     call log_close
@@ -1469,67 +1495,48 @@ PROC_FRAME stop_burn, 30h
     call title_status
     xor ecx, ecx
     call ui_running
+    mov dword [resultState], RESULT_STOPPED
+    mov rcx, [hBtnStart]
+    lea rdx, [szRunAgain]
+    call SetWindowTextW
+    call result_invalidate
 .out:
     ENDPROC
 
-PROC_FRAME lists_clear, 30h
-    mov rcx, [hLstTime]
-    mov edx, LB_RESETCONTENT
-    xor r8d, r8d
-    xor r9d, r9d
-    call SendMessageW
-    mov rcx, [hLstSpeed]
-    mov edx, LB_RESETCONTENT
-    xor r8d, r8d
-    xor r9d, r9d
-    call SendMessageW
-    mov rcx, [hLstRes]
-    mov edx, LB_RESETCONTENT
-    xor r8d, r8d
-    xor r9d, r9d
-    call SendMessageW
-    ENDPROC
-
 PROC_FRAME_ALIGNED post_line, 30h
+    cmp dword [running], 0
+    je .out
     mov rcx, [hMain]
     mov edx, WM_LINE
     xor r8d, r8d
     lea r9, [lineAcc]
     call SendMessageW
+.out:
     ENDPROC
 
 on_line:
+    cmp dword [running], 0
+    je .ignored
     jmp parse_result
+.ignored:
+    xor eax, eax
+    ret
 
 PROC_FRAME parse_result, 40h, rsi, rdi, r12, r13, r14
     mov r14, rcx
     lea r13, [rcx+32]
     lea r12, [rcx+64]
     mov rcx, r14
-    lea rdx, [tmpBuf]
+    lea rdx, [resultTime]
     call ansi_to_wide
-    mov rcx, [hLstTime]
-    mov edx, LB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [tmpBuf]
-    call SendMessageW
     mov rcx, r13
-    lea rdx, [tmpBuf]
+    lea rdx, [resultSpeed]
     call ansi_to_wide
-    mov rcx, [hLstSpeed]
-    mov edx, LB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [tmpBuf]
-    call SendMessageW
     mov rcx, r12
-    lea rdx, [tmpBuf]
+    lea rdx, [resultResid]
     call ansi_to_wide
-    mov rcx, [hLstRes]
-    mov edx, LB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [tmpBuf]
-    call SendMessageW
-    call lists_scroll
+    inc dword [resultIndex]
+    call log_line_3
     cmp dword [haveResid], 0
     jne .cmp
     lea rdi, [firstResid]
@@ -1558,6 +1565,8 @@ PROC_FRAME parse_result, 40h, rsi, rdi, r12, r13, r14
     jmp .cl
 .bad:
     mov dword [failed], 1
+    mov dword [resultState], RESULT_FAIL
+    call result_invalidate
     call fail_now
     mov eax, 1
     jmp .leave
@@ -1571,16 +1580,7 @@ PROC_FRAME parse_result, 40h, rsi, rdi, r12, r13, r14
     mov rcx, [hMain]
     lea rdx, [titleBuf]
     call SetWindowTextW
-    mov rcx, r14
-    lea rdx, [tmpBuf]
-    call ansi_to_wide
-    mov rcx, r13
-    lea rdx, [tmpBuf+160]
-    call ansi_to_wide
-    mov rcx, r12
-    lea rdx, [tmpBuf+320]
-    call ansi_to_wide
-    call log_line_3
+    call result_invalidate
     mov eax, 1
     jmp .leave
 .no:
@@ -1599,40 +1599,12 @@ PROC_FRAME ansi_to_wide, 30h
     call MultiByteToWideChar
     ENDPROC
 
-PROC_FRAME lists_scroll, 28h, rbx
-    mov rcx, [hLstTime]
-    mov edx, LB_GETCOUNT
-    xor r8d, r8d
-    xor r9d, r9d
-    call SendMessageW
-    test eax, eax
-    jz .out
-    dec eax
-    mov ebx, eax
-    mov rcx, [hLstTime]
-    mov edx, LB_SETTOPINDEX
-    mov r8d, ebx
-    xor r9d, r9d
-    call SendMessageW
-    mov rcx, [hLstSpeed]
-    mov edx, LB_SETTOPINDEX
-    mov r8d, ebx
-    xor r9d, r9d
-    call SendMessageW
-    mov rcx, [hLstRes]
-    mov edx, LB_SETTOPINDEX
-    mov r8d, ebx
-    xor r9d, r9d
-    call SendMessageW
-.out:
-    ENDPROC_SAVED 28h, rbx
-
 fail_now:
     mov dword [lpStop], 1
     mov dword [failed], 1
     ret
 
-PROC_FRAME on_done, 50h
+PROC_FRAME on_done, 48h, rbx
     cmp dword [running], 0
     je .out
     call cleanup_proc
@@ -1656,17 +1628,18 @@ PROC_FRAME on_done, 50h
     lea rcx, [szSuccessA]
     call log_result
     call log_close
-    lea rcx, [tmpBuf]
-    lea rdx, [szOkTxt]
-    mov r8d, ebx
-    call wsprintfW
-    mov rcx, [hMain]
-    lea rdx, [tmpBuf]
-    lea r8, [szOkCap]
-    mov r9d, MB_OK|MB_ICONINFORMATION
-    call dark_message_box
+    mov dword [resultState], RESULT_PASS
+    mov rcx, [hBtnStart]
+    lea rdx, [szRunAgain]
+    call SetWindowTextW
+    call result_invalidate
     jmp .out
 .alloc:
+    mov dword [resultState], RESULT_FAIL
+    mov rcx, [hBtnStart]
+    lea rdx, [szRunAgain]
+    call SetWindowTextW
+    call result_invalidate
     lea rcx, [szFailure]
     call title_status
     lea rcx, [szFailA]
@@ -1679,6 +1652,11 @@ PROC_FRAME on_done, 50h
     call dark_message_box
     jmp .out
 .fail:
+    mov dword [resultState], RESULT_FAIL
+    mov rcx, [hBtnStart]
+    lea rdx, [szRunAgain]
+    call SetWindowTextW
+    call result_invalidate
     lea rcx, [szFailure]
     call title_status
     lea rcx, [szFailA]
@@ -1695,6 +1673,11 @@ PROC_FRAME on_done, 50h
     call dark_message_box
     jmp .out
 .die:
+    mov dword [resultState], RESULT_FAIL
+    mov rcx, [hBtnStart]
+    lea rdx, [szRunAgain]
+    call SetWindowTextW
+    call result_invalidate
     lea rcx, [szFailure]
     call title_status
     lea rcx, [szFailA]
@@ -1710,7 +1693,7 @@ PROC_FRAME on_done, 50h
     mov r9d, MB_OK|MB_ICONWARNING
     call dark_message_box
 .out:
-    ENDPROC
+    ENDPROC_SAVED 48h, rbx
 
 PROC_FRAME cleanup_proc, 30h
     mov rcx, [hProc]
@@ -1760,11 +1743,11 @@ PROC_FRAME log_open, 50h
     mov rcx, [hCmbStress]
     mov edx, CB_GETLBTEXT
     mov r8d, eax
-    lea r9, [cpuWide]
+    lea r9, [titleBuf]
     call SendMessageW
     lea rcx, [tmpBuf]
     lea rdx, [szLogHdr]
-    lea r8, [cpuWide]
+    lea r8, [titleBuf]
     mov r9d, [stressMB]
     call wsprintfW
     lea rcx, [tmpBuf]
@@ -1804,10 +1787,10 @@ PROC_FRAME log_line_3, 40h
     jz .out
     lea rcx, [titleBuf]
     lea rdx, [szLogLine]
-    lea r8, [tmpBuf]
-    lea r9, [tmpBuf+160]
+    lea r8, [resultTime]
+    lea r9, [resultSpeed]
     sub rsp, 20h
-    lea rax, [tmpBuf+320]
+    lea rax, [resultResid]
     mov [rsp+20h], rax
     call wsprintfW
     add rsp, 20h
@@ -1885,7 +1868,9 @@ PROC_FRAME menu_context, 48h, rbx, rsi, r12
     je .xt
     cmp ebx, IDC_LOG
     je .dbg
-    jmp .copy
+    cmp ebx, IDC_RESULTCARD
+    je .copy
+    jmp .dismiss
 .xt:
     mov r9d, MF_STRING
     cmp dword [xtreme], 0
@@ -1914,12 +1899,7 @@ PROC_FRAME menu_context, 48h, rbx, rsi, r12
     mov rcx, r12
     mov edx, MF_STRING
     mov r8d, IDM_COPY
-    lea r9, [szCopy]
-    call AppendMenuW
-    mov rcx, r12
-    mov edx, MF_STRING
-    mov r8d, IDM_COPYALL
-    lea r9, [szCopyAll]
+    lea r9, [szCopySummary]
     call AppendMenuW
 .track:
     cmp esi, -1
@@ -1950,8 +1930,6 @@ PROC_FRAME menu_context, 48h, rbx, rsi, r12
     je .dod
     cmp ebx, IDM_COPY
     je .doc
-    cmp ebx, IDM_COPYALL
-    je .doa
     jmp .out
 .dox:
     cmp dword [xtreme], 0
@@ -1972,108 +1950,34 @@ PROC_FRAME menu_context, 48h, rbx, rsi, r12
     xor dword [debugOn], 1
     jmp .out
 .doc:
-    call clip_copy
+    call clip_summary
     jmp .out
-.doa:
-    call clip_copyall
+.dismiss:
+    mov rcx, r12
+    call DestroyMenu
 .out:
     ENDPROC_SAVED 48h, rbx, rsi, r12
 
-PROC_FRAME clip_copy, 38h, rbx
-    xor ebx, ebx
-.try:
-    lea rax, [hLstTime]
-    mov rcx, [rax+rbx*8]
-    mov edx, LB_GETCURSEL
-    xor r8d, r8d
-    xor r9d, r9d
-    call SendMessageW
-    cmp eax, -1
-    jne .have
-    inc ebx
-    cmp ebx, 3
-    jb .try
+PROC_FRAME clip_summary, 40h
+    cmp dword [resultIndex], 0
+    jne .format
+    lea rcx, [szNoRuns]
+    call clip_set
     jmp .out
-.have:
+.format:
     lea rcx, [tmpBuf]
-    mov word [rcx], 0
-    mov edx, eax
-    xor r8d, r8d
-    call row_append
+    lea rdx, [szSummaryFmt]
+    mov r8d, [resultIndex]
+    mov r9d, [targetRuns]
+    lea rax, [resultSpeed]
+    mov [rsp+20h], rax
+    lea rax, [resultResid]
+    mov [rsp+28h], rax
+    call wsprintfW
     lea rcx, [tmpBuf]
     call clip_set
 .out:
-    ENDPROC_SAVED 38h, rbx
-
-PROC_FRAME clip_copyall, 38h, rbx, rsi, rdi
-    mov rcx, [hLstTime]
-    mov edx, LB_GETCOUNT
-    xor r8d, r8d
-    xor r9d, r9d
-    call SendMessageW
-    mov esi, eax
-    test esi, esi
-    jz .out
-    call GetProcessHeap
-    mov rcx, rax
-    mov edx, HEAP_ZERO_MEMORY
-    mov r8d, 32768
-    call HeapAlloc
-    test rax, rax
-    jz .out
-    mov rbx, rax
-    mov word [rbx], 0
-    xor edi, edi
-.lp:
-    cmp edi, esi
-    jae .put
-    mov rcx, rbx
-    mov edx, edi
-    mov r8d, 1
-    call row_append
-    inc edi
-    jmp .lp
-.put:
-    mov rcx, rbx
-    call clip_set
-    call GetProcessHeap
-    mov rcx, rax
-    xor edx, edx
-    mov r8, rbx
-    call HeapFree
-.out:
-    ENDPROC_SAVED 38h, rbx, rsi, rdi
-
-PROC_FRAME row_append, 20h, rbx, rsi, r12, r13
-    mov rbx, rcx
-    mov r12d, edx
-    mov r13d, r8d
-    xor esi, esi
-.column:
-    lea rax, [hLstTime]
-    mov rcx, [rax+rsi*8]
-    mov edx, LB_GETTEXT
-    mov r8d, r12d
-    lea r9, [titleBuf]
-    call SendMessageW
-    mov rcx, rbx
-    lea rdx, [titleBuf]
-    call lstrcatW
-    inc esi
-    cmp esi, 3
-    jae .last
-    mov rcx, rbx
-    lea rdx, [szTab]
-    call lstrcatW
-    jmp .column
-.last:
-    test r13d, r13d
-    jz .out
-    mov rcx, rbx
-    lea rdx, [szCRLF]
-    call lstrcatW
-.out:
-    ENDPROC_SAVED 20h, rbx, rsi, r12, r13
+    ENDPROC
 
 PROC_FRAME clip_set, 38h, rbx, rsi, r12
     mov rsi, rcx

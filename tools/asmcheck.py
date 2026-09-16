@@ -50,6 +50,16 @@ def main():
     labels = bind_labels(rows)
     hits = []
 
+    if labels.get("lp_isa_probe") != 0x2E94:
+        hits.append(
+            (
+                "bench-anchor",
+                "lp_isa_probe",
+                "expected 0x2e94, got %s"
+                % hex(labels.get("lp_isa_probe", -1)),
+            )
+        )
+
     loops = {}
     for _, addr, src in rows:
         if addr is None:
@@ -147,7 +157,13 @@ def main():
     for k, a, b in hits:
         kindn[k] = kindn.get(k, 0) + 1
         print("%-16s %-22s %s" % (k, a, b))
-        if k in ("sse-after-avx", "align32-fn", "weak-align", "missing"):
+        if k in (
+            "sse-after-avx",
+            "align32-fn",
+            "weak-align",
+            "missing",
+            "bench-anchor",
+        ):
             block += 1
     print("---")
     for k in sorted(kindn):

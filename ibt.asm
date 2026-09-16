@@ -111,7 +111,6 @@ extern SetBkColor
 extern SetClassLongPtrW
 extern SetWindowTheme
 extern DwmSetWindowAttribute
-extern GetDlgItem
 extern GetClassNameW
 extern GetWindowLongPtrW
 extern GetProcAddress
@@ -125,6 +124,7 @@ WM_PAINT            equ 0Fh
 WM_CLOSE            equ 10h
 PS_SOLID            equ 0
 NULL_BRUSH          equ 5
+NULL_PEN            equ 8
 ; Permanent dark palette. COLORREF values are stored as 00BBGGRR.
 COL_BG              equ 00181310h ; #101318
 COL_PANEL           equ 00221B17h ; #171B22
@@ -135,11 +135,12 @@ COL_BORDER          equ 004B3D34h ; #343D4B
 COL_ACCENT          equ 00337AFFh ; #FF7A33
 COL_ACCENT_DOWN     equ 00205ED9h ; #D95E20
 COL_ACCENT_TEXT     equ 0016110Eh ; #0E1116
+COL_SUCCESS         equ 0092D342h ; #42D392
+COL_DANGER          equ 006C5DFFh ; #FF5D6C
 GCLP_HBRBACKGROUND  equ -10
 GWL_STYLE           equ -16
 GWL_EXSTYLE         equ -20
 BS_OWNERDRAW        equ 0Bh
-DT_CENTER           equ 1
 SWP_NOZORDER        equ 4
 SWP_FRAMECHANGED    equ 20h
 WM_ERASEBKGND       equ 14h
@@ -193,18 +194,15 @@ CBS_HASSTRINGS      equ 200h
 CBS_OWNERDRAWFIXED  equ 10h
 CBN_SELCHANGE       equ 1
 CBN_DROPDOWN        equ 7
-LBS_NOTIFY          equ 1
-LBS_HASSTRINGS      equ 40h
-LBS_NOINTEGRALHEIGHT equ 100h
 SS_BITMAP           equ 0Eh
 SS_LEFTNOWORDWRAP   equ 0Ch
-SS_CENTERIMAGE      equ 200h
 SS_NOTIFY           equ 100h
 SS_OWNERDRAW        equ 0Dh
 SS_ETCHEDFRAME      equ 12h
-WS_BORDER           equ 00800000h
 WM_DRAWITEM         equ 2Bh
 DT_LEFT             equ 0
+DT_CENTER           equ 1
+DT_RIGHT            equ 2
 DT_VCENTER          equ 4
 DT_SINGLELINE       equ 20h
 
@@ -212,12 +210,6 @@ CB_ADDSTRING        equ 143h
 CB_SETCURSEL        equ 14Eh
 CB_GETCURSEL        equ 147h
 CB_GETLBTEXT        equ 148h
-LB_ADDSTRING        equ 180h
-LB_RESETCONTENT     equ 184h
-LB_GETCOUNT         equ 18Bh
-LB_GETTEXT          equ 189h
-LB_GETCURSEL        equ 188h
-LB_SETTOPINDEX      equ 197h
 BM_GETCHECK         equ 0F0h
 BST_CHECKED         equ 1
 STM_SETIMAGE        equ 0172h
@@ -247,16 +239,13 @@ IDC_THREADS         equ 114
 IDC_START           equ 115
 IDC_STOP            equ 116
 IDC_ABOUT           equ 117
-IDC_LSTTIME         equ 124
-IDC_LSTSPEED        equ 125
-IDC_LSTRES          equ 126
+IDC_RESULTCARD      equ 124
 IDC_FLAME           equ 119
 IDC_PAYPAL          equ 120
 IDC_BITS            equ 103
 IDC_MBLBL           equ 107
 IDC_RAMV            equ 111
 IDM_COPY            equ 1001
-IDM_COPYALL         equ 1002
 IDM_XTREME          equ 1003
 IDM_DEBUG           equ 1004
 
@@ -286,7 +275,6 @@ FILE_ATTRIBUTE_NORMAL equ 80h
 FILE_SHARE_READ     equ 1
 GMEM_MOVEABLE       equ 2
 CF_UNICODETEXT      equ 13
-HEAP_ZERO_MEMORY    equ 8
 INVALID_FILE_ATTRIBUTES equ 0FFFFFFFFh
 ICC_WIN95_CLASSES   equ 1
 ICC_STANDARD_CLASSES equ 4000h
@@ -308,7 +296,7 @@ STYLE_CMB   equ (WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_TABSTOP|WS_VSCROLL|CBS_D
 STYLE_CHK   equ (WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_TABSTOP|BS_AUTOCHECKBOX|BS_NOTIFY)
 STYLE_BTN   equ (WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_TABSTOP|BS_PUSHBUTTON|BS_NOTIFY)
 STYLE_DEF   equ (WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_TABSTOP|BS_DEFPUSHBUTTON|BS_NOTIFY)
-STYLE_LST   equ (WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_TABSTOP|WS_VSCROLL|LBS_NOTIFY|LBS_HASSTRINGS|LBS_NOINTEGRALHEIGHT)
+STYLE_RESULT equ (WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|SS_OWNERDRAW|SS_NOTIFY)
 STYLE_BMP   equ (WS_CHILD|WS_VISIBLE|SS_BITMAP)
 
 UIC_STATIC  equ 0
@@ -333,9 +321,13 @@ UIS_COFFEE  equ 9
 UIS_BITS    equ 10
 UIS_MBLBL   equ 11
 UIS_RAMV    equ 12
-UIS_LSTTIME equ 13
-UIS_LSTSPEED equ 14
-UIS_LSTRES  equ 15
+UIS_RESULTCARD equ 13
+
+RESULT_READY   equ 0
+RESULT_RUNNING equ 1
+RESULT_PASS    equ 2
+RESULT_FAIL    equ 3
+RESULT_STOPPED equ 4
 
 %macro UI_CTL 11
     db %1, %2, %3, 0
@@ -445,9 +437,8 @@ hCoffeeWnd  resq 1
 hLblBits    resq 1
 hLblMB      resq 1
 hLblRamV    resq 1
-hLstTime    resq 1
-hLstSpeed   resq 1
-hLstRes     resq 1
+hResultCard resq 1
+              resq 2 ; retain the legacy three-result-slot footprint
 hBrBg       resq 1
 hBrPanel    resq 1
 hBrEdit     resq 1
@@ -553,6 +544,12 @@ lpQ0        resq 1
 lpWorkers   resq 32
 lpSeen      resd 32
 lpWparm     resd 32
+resultTime  resw 80
+resultSpeed resw 80
+resultResid resw 80
+hFontMetric resq 1
+resultState resd 1
+resultIndex resd 1
 
 section .data
 szClass     dw __utf16le__("MinWndClassX"),0
@@ -690,13 +687,8 @@ uiControls:
     UI_CTL UIC_BUTTON, 0, UIS_STOP, IDC_STOP, 526, 67, 70, 29, STYLE_BTN|WS_DISABLED, 0, szStop
     UI_CTL UIC_BUTTON, 0, UIS_ABOUT, IDC_ABOUT, 462, 105, 43, 26, STYLE_DEF, 0, szAbout
     UI_CTL UIC_STATIC, UIF_COFFEE, UIS_COFFEE, IDC_PAYPAL, 511, 107, 85, 23, STYLE_BMP|SS_NOTIFY, 0, szEmpty
-    UI_CTL UIC_STATIC, UIF_BOLD, UIS_NONE, 98, 26, 146, 64, 18, STYLE_HDR, 0, szOutput
-    UI_CTL UIC_STATIC, 0, UIS_NONE, 121, 26, 170, 108, 18, STYLE_LBL, 0, szTime
-    UI_CTL UIC_STATIC, 0, UIS_NONE, 122, 136, 170, 140, 18, STYLE_LBL, 0, szSpeed
-    UI_CTL UIC_STATIC, 0, UIS_NONE, 123, 278, 170, 318, 18, STYLE_LBL, 0, szResults
-    UI_CTL UIC_LIST, 0, UIS_LSTTIME, IDC_LSTTIME, 24, 190, 110, 184, STYLE_LST, 0, szEmpty
-    UI_CTL UIC_LIST, 0, UIS_LSTSPEED, IDC_LSTSPEED, 136, 190, 140, 184, STYLE_LST, 0, szEmpty
-    UI_CTL UIC_LIST, 0, UIS_LSTRES, IDC_LSTRES, 278, 190, 318, 184, STYLE_LST, 0, szEmpty
+    UI_CTL UIC_STATIC, UIF_BOLD, UIS_NONE, 98, 26, 146, 152, 18, STYLE_HDR, 0, szOutputV3
+    UI_CTL UIC_STATIC, UIF_SHOW, UIS_RESULTCARD, IDC_RESULTCARD, 24, 170, 572, 204, STYLE_RESULT, 0, szEmpty
 uiControlsEnd:
 
 uiClasses:
@@ -705,6 +697,36 @@ uiClasses:
     dd szCombo - uiControls
     dd szEdit - uiControls
     dd szList - uiControls
+
+; Keep the validated data/BSS boundary stable. Numerical state keeps the same
+; virtual addresses even as the presentation layer evolves.
+szOutputV3 dw __utf16le__("STABILITY MONITOR"),0
+times 011ECh-($-$$) db 0
+
+section .v3str rdata align=16
+szRunAgain  dw __utf16le__("&Run again"),0
+szCardHead  dw __utf16le__("RUN PROGRESS"),0
+szReady     dw __utf16le__("READY"),0
+szRunning   dw __utf16le__("RUNNING"),0
+szPassed    dw __utf16le__("PASSED"),0
+szFailed    dw __utf16le__("FAILED"),0
+szStoppedCard dw __utf16le__("STOPPED"),0
+szRunFmt    dw __utf16le__("RUN %u / %u"),0
+szReadyStart dw __utf16le__("READY TO START"),0
+szWarming   dw __utf16le__("WARMING UP"),0
+szDash      dw __utf16le__("--"),0
+szGflops    dw __utf16le__("GFLOPS"),0
+szLastRun   dw __utf16le__("LAST RUN"),0
+szSecondsFmt dw __utf16le__("%s s"),0
+szSignature dw __utf16le__("STABILITY SIGNATURE"),0
+szAwaiting  dw __utf16le__("Waiting for the first completed run"),0
+szReference dw __utf16le__("REFERENCE CAPTURED"),0
+szMatchFmt  dw __utf16le__("MATCH - %u / %u CONSISTENT"),0
+szPassMatch dw __utf16le__("ALL RUNS MATCH"),0
+szMismatch  dw __utf16le__("RESIDUAL MISMATCH"),0
+szNoRuns    dw __utf16le__("No completed runs yet."),0
+szSummaryFmt dw __utf16le__("Run %u/%u | %s GFLOPS | residual %s"),0
+szCopySummary dw __utf16le__("Copy summary"),0
 
 section .text
 global start
@@ -905,6 +927,15 @@ PROC_FRAME ui_init, 80h, rbx, rsi
 
 %include "ibt_ui.inc"
 %include "ibt_theme.inc"
+
+; UI experiments may release space before the numerical engine. Increase this
+; compile-time padding by the exact released byte count to preserve the validated
+; benchmark address without introducing a location-dependent assembler expression.
+%assign UI_BENCH_PAD_BYTES 295
+%rep UI_BENCH_PAD_BYTES
+    db 090h
+%endrep
+
 %include "ibt_lpk.inc"
 %include "bench_lib.inc"
 
@@ -912,6 +943,315 @@ PROC_FRAME ui_init, 80h, rbx, rsi
 
 
 ; Kept after the benchmark engine so UI-only drawing code cannot move hot loops.
+section .text$v3 code align=16
+
+PROC_FRAME result_invalidate, 30h
+    mov rcx, [hResultCard]
+    test rcx, rcx
+    jz .out
+    xor edx, edx
+    xor r8d, r8d
+    call InvalidateRect
+.out:
+    ENDPROC
+
+PROC_FRAME card_text_at, 58h, rbx, rsi, rdi, r12, r13
+    mov rbx, rcx
+    mov rsi, rdx
+    mov r12, [rbp+30h]
+    mov r13d, [rbp+38h]
+    mov rdi, [rbp+40h]
+    mov eax, r8d
+    movzx ecx, ax
+    mov [rsp+40h], ecx
+    shr eax, 16
+    mov [rsp+44h], eax
+    mov eax, r9d
+    movzx ecx, ax
+    mov [rsp+48h], ecx
+    shr eax, 16
+    mov [rsp+4Ch], eax
+    mov rcx, rbx
+    mov edx, TRANSPARENT
+    call SetBkMode
+    mov rcx, rbx
+    mov edx, r13d
+    call SetTextColor
+    mov rcx, rbx
+    mov rdx, r12
+    call SelectObject
+    mov [rsp+50h], rax
+    mov rcx, rbx
+    mov rdx, rsi
+    mov r8d, -1
+    lea r9, [rsp+40h]
+    mov [rsp+20h], rdi
+    call DrawTextW
+    mov rcx, rbx
+    mov rdx, [rsp+50h]
+    call SelectObject
+    ENDPROC_SAVED 58h, rbx, rsi, rdi, r12, r13
+
+PROC_FRAME card_bar, 60h, rbx, rsi, r12, r13
+    mov rbx, rcx
+    mov esi, edx
+    mov r12d, r8d
+    mov r13d, r9d
+    mov ecx, NULL_PEN
+    call GetStockObject
+    mov rcx, rbx
+    mov rdx, rax
+    call SelectObject
+    mov [rsp+40h], rax
+    mov rcx, rbx
+    mov rdx, [hBrPanel]
+    call SelectObject
+    mov [rsp+48h], rax
+    mov rcx, rbx
+    mov edx, 18
+    mov r8d, 44
+    mov r9d, 554
+    mov qword [rsp+20h], 52
+    mov qword [rsp+28h], 8
+    mov qword [rsp+30h], 8
+    call RoundRect
+    test r12d, r12d
+    jz .restore
+    test esi, esi
+    jz .restore
+    mov eax, esi
+    imul eax, 536
+    xor edx, edx
+    div r12d
+    add eax, 18
+    cmp eax, 554
+    jbe .width_ok
+    mov eax, 554
+.width_ok:
+    mov [rsp+58h], eax
+    mov ecx, r13d
+    call CreateSolidBrush
+    mov [rsp+50h], rax
+    mov rcx, rbx
+    mov rdx, rax
+    call SelectObject
+    mov rcx, rbx
+    mov edx, 18
+    mov r8d, 44
+    mov r9d, [rsp+58h]
+    mov qword [rsp+20h], 52
+    mov qword [rsp+28h], 8
+    mov qword [rsp+30h], 8
+    call RoundRect
+    mov rcx, rbx
+    mov rdx, [hBrPanel]
+    call SelectObject
+    mov rcx, [rsp+50h]
+    call DeleteObject
+.restore:
+    mov rcx, rbx
+    mov rdx, [rsp+48h]
+    call SelectObject
+    mov rcx, rbx
+    mov rdx, [rsp+40h]
+    call SelectObject
+    ENDPROC_SAVED 60h, rbx, rsi, r12, r13
+
+%macro CARD_LINE 8
+    mov rcx, rsi
+    lea rdx, [%1]
+    mov r8d, ((%3) << 16) | (%2)
+    mov r9d, ((%5) << 16) | (%4)
+    mov rax, [%6]
+    mov [rsp+20h], rax
+    mov qword [rsp+28h], %7
+    mov qword [rsp+30h], %8
+    call card_text_at
+%endmacro
+
+PROC_FRAME result_draw, 0B0h, rbx, rsi, r12, r13
+    mov rbx, rcx
+    mov rsi, [rbx+32]
+    mov r12d, [resultState]
+    mov r13d, COL_MUTED
+    cmp r12d, RESULT_RUNNING
+    jne .not_running
+    mov r13d, COL_ACCENT
+    jmp .color_ready
+.not_running:
+    cmp r12d, RESULT_PASS
+    jne .not_pass
+    mov r13d, COL_SUCCESS
+    jmp .color_ready
+.not_pass:
+    cmp r12d, RESULT_FAIL
+    jne .color_ready
+    mov r13d, COL_DANGER
+.color_ready:
+    mov rcx, rsi
+    lea rdx, [rbx+40]
+    mov r8, [hBrPanel]
+    call FillRect
+    xor ecx, ecx
+    mov edx, 1
+    mov r8d, r13d
+    call CreatePen
+    mov [rsp+70h], rax
+    mov rcx, rsi
+    mov rdx, rax
+    call SelectObject
+    mov [rsp+78h], rax
+    mov rcx, rsi
+    mov rdx, [hBrEdit]
+    call SelectObject
+    mov [rsp+80h], rax
+    mov rcx, rsi
+    xor edx, edx
+    xor r8d, r8d
+    mov r9d, [rbx+48]
+    mov eax, [rbx+52]
+    mov [rsp+20h], rax
+    call round_rect_panel
+    mov rcx, rsi
+    mov rdx, [rsp+80h]
+    call SelectObject
+    mov rcx, rsi
+    mov rdx, [rsp+78h]
+    call SelectObject
+    mov rcx, [rsp+70h]
+    call DeleteObject
+
+    CARD_LINE szCardHead, 18, 9, 300, 32, hFontBold, COL_MUTED, DT_LEFT|DT_VCENTER|DT_SINGLELINE
+    lea rax, [szReady]
+    cmp r12d, RESULT_RUNNING
+    jne .status_pass
+    lea rax, [szRunning]
+    jmp .status_ready
+.status_pass:
+    cmp r12d, RESULT_PASS
+    jne .status_fail
+    lea rax, [szPassed]
+    jmp .status_ready
+.status_fail:
+    cmp r12d, RESULT_FAIL
+    jne .status_stopped
+    lea rax, [szFailed]
+    jmp .status_ready
+.status_stopped:
+    cmp r12d, RESULT_STOPPED
+    jne .status_ready
+    lea rax, [szStoppedCard]
+.status_ready:
+    mov [rsp+88h], rax
+    mov rcx, rsi
+    mov rdx, rax
+    mov r8d, (9 << 16) | 340
+    mov r9d, (32 << 16) | 554
+    mov rax, [hFontBold]
+    mov [rsp+20h], rax
+    mov [rsp+28h], r13
+    mov qword [rsp+30h], DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+    call card_text_at
+
+    mov edx, [resultIndex]
+    mov r8d, [targetRuns]
+    test r8d, r8d
+    jnz .bar_target
+    mov r8d, 10
+.bar_target:
+    mov rcx, rsi
+    mov r9d, r13d
+    call card_bar
+
+    cmp r12d, RESULT_READY
+    jne .format_run
+    CARD_LINE szReadyStart, 18, 57, 220, 78, hFont, COL_FG, DT_LEFT|DT_VCENTER|DT_SINGLELINE
+    jmp .run_done
+.format_run:
+    mov r8d, [resultIndex]
+    cmp r12d, RESULT_RUNNING
+    jne .run_number
+    cmp r8d, [targetRuns]
+    jae .run_number
+    inc r8d
+.run_number:
+    lea rcx, [titleBuf]
+    lea rdx, [szRunFmt]
+    mov r9d, [targetRuns]
+    call wsprintfW
+    CARD_LINE titleBuf, 18, 57, 220, 78, hFont, COL_FG, DT_LEFT|DT_VCENTER|DT_SINGLELINE
+.run_done:
+    cmp word [resultSpeed], 0
+    jne .metric_value
+    cmp r12d, RESULT_RUNNING
+    jne .metric_dash
+    CARD_LINE szWarming, 18, 78, 232, 126, hFontBold, COL_FG, DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+    jmp .metric_done
+.metric_dash:
+    CARD_LINE szDash, 18, 78, 232, 126, hFontMetric, COL_FG, DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+    jmp .metric_done
+.metric_value:
+    CARD_LINE resultSpeed, 18, 78, 232, 126, hFontMetric, COL_FG, DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+.metric_done:
+    CARD_LINE szGflops, 242, 91, 332, 122, hFontBold, COL_MUTED, DT_LEFT|DT_VCENTER|DT_SINGLELINE
+    CARD_LINE szLastRun, 390, 72, 554, 92, hFont, COL_MUTED, DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+    cmp word [resultTime], 0
+    jne .time_value
+    CARD_LINE szDash, 390, 93, 554, 120, hFontBold, COL_FG, DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+    jmp .time_done
+.time_value:
+    lea rcx, [tmpBuf]
+    lea rdx, [szSecondsFmt]
+    lea r8, [resultTime]
+    call wsprintfW
+    CARD_LINE tmpBuf, 390, 93, 554, 120, hFontBold, COL_FG, DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+.time_done:
+    CARD_LINE szSignature, 18, 137, 270, 158, hFontBold, COL_MUTED, DT_LEFT|DT_VCENTER|DT_SINGLELINE
+    cmp dword [resultIndex], 0
+    jne .signature_value
+    CARD_LINE szAwaiting, 18, 163, 554, 192, hFont, COL_MUTED, DT_LEFT|DT_VCENTER|DT_SINGLELINE
+    jmp .draw_done
+.signature_value:
+    CARD_LINE resultResid, 18, 163, 286, 192, hFont, COL_FG, DT_LEFT|DT_VCENTER|DT_SINGLELINE
+    cmp r12d, RESULT_PASS
+    jne .match_fail
+    lea rax, [szPassMatch]
+    jmp .match_draw
+.match_fail:
+    cmp r12d, RESULT_FAIL
+    jne .match_reference
+    lea rax, [szMismatch]
+    jmp .match_draw
+.match_reference:
+    cmp dword [resultIndex], 1
+    jne .match_format
+    lea rax, [szReference]
+    jmp .match_draw
+.match_format:
+    lea rcx, [titleBuf]
+    lea rdx, [szMatchFmt]
+    mov r8d, [passCount]
+    mov r9d, [resultIndex]
+    call wsprintfW
+    lea rax, [titleBuf]
+.match_draw:
+    mov rcx, rsi
+    mov rdx, rax
+    mov r8d, (163 << 16) | 286
+    mov r9d, (192 << 16) | 554
+    mov rax, [hFontBold]
+    mov [rsp+20h], rax
+    mov [rsp+28h], r13
+    mov qword [rsp+30h], DT_RIGHT|DT_VCENTER|DT_SINGLELINE
+    call card_text_at
+.draw_done:
+    mov eax, 1
+    ENDPROC_SAVED 0B0h, rbx, rsi, r12, r13
+
+%unmacro CARD_LINE 8
+
+section .text
+
 round_button:
     mov eax, 10
     jmp round_window
@@ -993,12 +1333,6 @@ PROC_FRAME round_controls, 20h
     call round_small
     mov rcx, [hCmbThr]
     call round_small
-    mov rcx, [hLstTime]
-    call round_small
-    mov rcx, [hLstSpeed]
-    call round_small
-    mov rcx, [hLstRes]
-    call round_small
     ENDPROC
 
 PROC_FRAME theme_apply_rounded, 20h
@@ -1078,3 +1412,16 @@ PROC_FRAME flame_sub, 0A8h, rbx, r12, r13
     xor eax, eax
 .out:
     ENDPROC_SAVED 0A8h, rbx, r12, r13
+
+; Retain the legacy kernel imports and .text extent so the linker keeps the
+; import thunks used by the numerical engine at their validated addresses.
+; This block is never called.
+compat_import_layout:
+    call GetProcessHeap
+    call HeapAlloc
+    call HeapFree
+    ret
+
+; Preserve the legacy .text extent so the linker emits import thunks at the
+; validated addresses referenced by the numerical engine.
+times 20 db 090h

@@ -34,6 +34,7 @@ IDC_MB = 106
 IDC_TIMES = 109
 IDC_LOG = 112
 IDC_START = 115
+IDC_STOP = 116
 
 u.FindWindowW.restype = wintypes.HWND
 u.GetDlgItem.restype = wintypes.HWND
@@ -172,6 +173,9 @@ def set_text(hwnd, value):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
+    for name in os.listdir(OUT):
+        if name.lower().endswith(".png"):
+            os.remove(os.path.join(OUT, name))
     subprocess.run(
         ["taskkill", "/F", "/IM", "IntelBurnTest.exe"],
         capture_output=True,
@@ -227,35 +231,74 @@ def main():
     u.PostMessageW(about, WM_CLOSE, 0, 0)
     time.sleep(0.2)
 
-    set_text(u.GetDlgItem(main_hwnd, IDC_MB), "512")
-    set_text(u.GetDlgItem(main_hwnd, IDC_TIMES), "3")
+    set_text(u.GetDlgItem(main_hwnd, IDC_MB), "1024")
+    set_text(u.GetDlgItem(main_hwnd, IDC_TIMES), "10")
     start = u.GetDlgItem(main_hwnd, IDC_START)
     u.PostMessageW(start, BM_CLICK, 0, 0)
-    captured_running = False
-    dialog = 0
-    deadline = time.time() + 90
+    deadline = time.time() + 30
     while time.time() < deadline:
         title = window_title(main_hwnd)
-        if not captured_running and ("Preparing" in title or "Running" in title):
+        if "Preparing" in title or "Running" in title:
             save_window("05-running", main_hwnd)
-            captured_running = True
-        dialog = find_exact_for_process("IntelBurnTest - Success", proc.pid)
-        if not dialog:
-            dialog = find_exact_for_process("IntelBurnTest - Critical Error", proc.pid)
-        if dialog:
             break
         time.sleep(0.03)
-    if not captured_running:
-        print("WARN_NO_RUNNING_CAPTURE")
-    if not dialog:
+    else:
         proc.kill()
-        raise SystemExit("NO_RESULT_DIALOG")
-    time.sleep(0.2)
-    save_window("06-results-behind-dialog", main_hwnd)
-    save_window("07-result-dialog", dialog)
-    u.PostMessageW(dialog, WM_CLOSE, 0, 0)
+        raise SystemExit("NO_RUNNING_STATE")
+
+    stop = u.GetDlgItem(main_hwnd, IDC_STOP)
+    u.PostMessageW(stop, BM_CLICK, 0, 0)
+    deadline = time.time() + 45
+    while time.time() < deadline:
+        if "[Stopped]" in window_title(main_hwnd):
+            save_window("06-stopped", main_hwnd)
+            break
+        time.sleep(0.03)
+    else:
+        proc.kill()
+        raise SystemExit("NO_STOPPED_STATE")
+
+    set_text(u.GetDlgItem(main_hwnd, IDC_TIMES), "3")
+    u.PostMessageW(start, BM_CLICK, 0, 0)
+    captured_reference = False
+    captured_match = False
+    critical_dialog = 0
+    finished = False
+    deadline = time.time() + 120
+    while time.time() < deadline:
+        title = window_title(main_hwnd)
+        if not captured_reference and "(1 of 3 Completed)" in title:
+            save_window("07-reference-captured", main_hwnd)
+            captured_reference = True
+        if not captured_match and "(2 of 3 Completed)" in title:
+            save_window("08-consistent", main_hwnd)
+            captured_match = True
+        if "[Finished]" in title:
+            finished = True
+            break
+        critical_dialog = find_exact_for_process(
+            "IntelBurnTest - Critical Error", proc.pid
+        )
+        if critical_dialog:
+            break
+        time.sleep(0.03)
+    missing = []
+    if not captured_reference:
+        missing.append("REFERENCE_CAPTURE")
+    if not captured_match:
+        missing.append("MATCH_CAPTURE")
+    if missing:
+        proc.kill()
+        raise SystemExit("MISSING_" + "_AND_".join(missing))
+    if critical_dialog:
+        save_window("09-critical-error", critical_dialog)
+        proc.kill()
+        raise SystemExit("BENCHMARK_REPORTED_CRITICAL_ERROR")
+    if not finished:
+        proc.kill()
+        raise SystemExit("NO_FINISHED_STATE")
     time.sleep(0.25)
-    save_window("08-finished", main_hwnd)
+    save_window("09-finished", main_hwnd)
 
     log_path = os.path.join(RUN_DIR, "results.log")
     if not os.path.isfile(log_path) or os.path.getsize(log_path) < 80:
