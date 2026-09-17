@@ -1,5 +1,8 @@
 /bin/
 /dist/
+/unix/IntelBurnTest
+/unix/IntelBurnTest.unpacked
+/unix/*.o
 /compare/
 __pycache__/
 *.py[cod]
