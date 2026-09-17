@@ -1304,7 +1304,11 @@ PROC_FRAME coffee_init, 30h
     ENDPROC
 
 coffee_theme_keep:
-    jmp round_button
+    ; Keep the source bitmap's exact 85x23 rectangular shape.  Applying the
+    ; generic rounded window region leaves a visible control outline around
+    ; this clickable static on Windows, unlike the direct bitmap on X11.
+    ret
+    times 4 nop                    ; preserve validated numerical-code offsets
 
 round_rect_panel:
     mov eax, 12

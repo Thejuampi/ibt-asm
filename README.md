@@ -12,16 +12,21 @@
 
 IntelBurnTest applies a sustained numerical workload across the selected threads and memory footprint. After every completed run, it compares the residual signature with the previous results. Matching signatures indicate repeatable computation under load; a mismatch indicates instability.
 
-The numerical workload, matrix kernels, thread workers, test orchestration, runtime ISA selection, validation, Win32 interface, and optional logging are all implemented in this codebase.
+The numerical workload, matrix kernels, thread workers, test orchestration, runtime ISA selection, validation, platform-native interfaces, and optional logging are all implemented in this codebase.
 
 | | |
 |---|---|
 | **Purpose** | Detect CPU instability under sustained numerical load |
 | **Primary target** | Modern Intel x86-64 processors |
 | **Execution paths** | SSE2, AVX, and AVX2 selected automatically |
-| **Platform** | Windows 10 or 11, x64 |
-| **Runtime dependencies** | Standard Windows system libraries only |
+| **Platform** | Windows 10 or 11, x64; Linux x86-64 with X11 |
+| **Runtime dependencies** | Windows system libraries, or X11/Xft and glibc on Linux |
 | **Persistent output** | Optional `results.log` |
+
+Windows (left) and Linux/X11 (right) use the same client geometry and visual
+assets. ISA and available-memory values are detected independently on each host.
+
+![Windows and Linux/X11 frontends side by side](.github/assets/ibt-windows-unix.webp)
 
 > [!WARNING]
 > IntelBurnTest intentionally creates sustained high CPU load, power draw, and heat. Use adequate cooling, monitor temperatures, and stop the test if the system exceeds safe operating limits. A stability test can reveal failures under its workload; it cannot guarantee stability under every possible workload.
@@ -110,11 +115,13 @@ These are examples, not universal pass criteria. Increase duration and memory pr
 - No Intel LINPACK executable, MKL, C runtime, or .NET dependency.
 - No configuration or theme files are read at startup.
 - `results.log` is created only when logging is enabled.
-- The release is a single native Windows x64 executable.
+- Both frontends use the same in-process numerical assembly sources.
+- Windows and X11 share the same 620 x 400 layout, control geometry, visual assets, and run-state presentation.
+- The Windows release and Unix distributable are each a single native x86-64 executable.
 
 ## Build from source
 
-### Requirements
+### Windows requirements
 
 - Windows 10 or 11, x64
 - [NASM](https://www.nasm.us/)
@@ -149,6 +156,27 @@ Tool paths can be overridden when necessary:
 make NASM=C:\tools\nasm.exe PYTHON=py
 ```
 
+### Linux/X11 build
+
+The Unix frontend reproduces the Windows 620 x 400 client area, dark layout,
+control geometry, original flame and coffee assets, run states, residual
+comparison, and optional `results.log`. It includes
+`ibt_lpk.inc` and `bench_lib.inc` directly rather than maintaining a second
+calculation implementation.
+
+Install NASM, a C linker, the X11 and Xft development libraries, pthreads, and
+UPX, then run:
+
+```console
+cd unix
+make
+./IntelBurnTest
+```
+
+`make` runs a headless numerical self-test and enforces a 23 KiB maximum for
+the packed Unix distributable. See [`unix/README.md`](unix/README.md) for the
+Unix-specific details and UI smoke-test command.
+
 ## Repository layout
 
 ```text
@@ -160,6 +188,7 @@ ibt_lpk.inc         test orchestration and numerical routines
 bench_lib.inc       optimized matrix kernels
 res/                source and compiled graphical assets
 tools/              asset generation, alignment checks, size reports, and QA
+unix/               Linux/x86-64 X11 frontend, build, and size gate
 ```
 
 Ordinary UI and control-flow routines use `PROC_FRAME name, stack, saved...` with `ENDPROC` or `ENDPROC_SAVED` so the Win64 frame contract remains visible. Simple bottom-tested loops use `DO` / `WHILE jcc`; numerical kernels remain direct instructions and labels.
