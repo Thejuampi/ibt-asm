@@ -4,11 +4,11 @@
 
 **An x86-64 CPU stability test written entirely in assembly and tuned for modern Intel processors.**
 
-[Download v3.0.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.0.0/IntelBurnTest.exe) · [Release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.0.0) · [Build from source](#build-from-source)
+[Download Windows v3.1.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64) · [Release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0) · [Build from source](#build-from-source)
 
 </div>
 
-![IntelBurnTest v3.0.0 after three consistent runs](.github/assets/ibt-v3-passed.webp)
+![IntelBurnTest after three consistent runs](.github/assets/ibt-v3-passed.webp)
 
 IntelBurnTest applies a sustained numerical workload across the selected threads and memory footprint. After every completed run, it compares the residual signature with the previous results. Matching signatures indicate repeatable computation under load; a mismatch indicates instability.
 
@@ -33,19 +33,25 @@ assets. ISA and available-memory values are detected independently on each host.
 
 ## Quick start
 
-1. [Download `IntelBurnTest.exe`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.0.0/IntelBurnTest.exe).
+1. [Download `IntelBurnTest.exe`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe).
 2. Close unnecessary applications and start temperature monitoring.
 3. Choose a stress level, run count, and thread count.
 4. Enable `results.log` only if you want a persistent record.
 5. Select **Start** and watch the Stability Monitor.
 6. Treat the test as passed only after every requested run completes with matching residual signatures.
 
-The v3.0.0 executable is unsigned, so Windows SmartScreen may display a warning on first launch.
+For Linux x86-64 with X11, download
+[`IntelBurnTest-linux-x64`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64),
+run `chmod +x IntelBurnTest-linux-x64`, then `./IntelBurnTest-linux-x64`.
+The Linux executable requires glibc, X11, and Xft at runtime.
+
+The v3.1.0 Windows executable is unsigned, so Windows SmartScreen may display a warning on first launch.
 
 ```text
-File:    IntelBurnTest.exe
-Size:    26,624 bytes
-SHA-256: 08e0152ea34271d823c7327b751314f70453a2f58ae42db5cd96731fe73cc2cc
+Windows: IntelBurnTest.exe        27,136 bytes
+SHA-256: ad20713dc097a8b1a9683c8e1fedd19d1b0cb0388437b37233f0ccf1b9c190c2
+Linux:   IntelBurnTest-linux-x64  21,060 bytes
+SHA-256: 2708364e043affe5973941c74eac4841b5413ef3ce2145437a60e7013b86fecb
 ```
 
 ## How stability is determined
@@ -112,7 +118,7 @@ These are examples, not universal pass criteria. Increase duration and memory pr
 - Numerical workload and optimized matrix kernels run in-process.
 - SSE2, AVX, and AVX2 capabilities are detected at startup; the best supported path is selected automatically.
 - Benchmark data remains in memory during execution.
-- No Intel LINPACK executable, MKL, C runtime, or .NET dependency.
+- No Intel LINPACK executable, MKL, or .NET dependency; the Linux frontend links glibc, X11, and Xft.
 - No configuration or theme files are read at startup.
 - `results.log` is created only when logging is enabled.
 - Both frontends use the same in-process numerical assembly sources.
@@ -213,7 +219,7 @@ Maximum reserves nearly all currently available memory and drives the selected C
 
 ## Credits
 
-IntelBurnTest v3.0.0 was created by **Thejuampi**. IntelBurnTest 2.54 was created by **AgentGOD**.
+IntelBurnTest v3.1.0 was created by **Thejuampi**. IntelBurnTest 2.54 was created by **AgentGOD**.
 
 [Buy Thejuampi a coffee](https://buymeacoffee.com/thejuampi)
 

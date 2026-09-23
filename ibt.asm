@@ -554,7 +554,7 @@ resultIndex resd 1
 section .data
 szClass     dw __utf16le__("MinWndClassX"),0
 szDlgClass  dw __utf16le__("IBTDarkDialog"),0
-szTitle     dw __utf16le__("IntelBurnTest v3.00 - by Thejuampi [Idle]"),0
+szTitle     dw __utf16le__("IntelBurnTest v3.1 - by Thejuampi [Idle]"),0,0
 szFail      dw __utf16le__("RegisterClassEx failed"),0
 szFail2     dw __utf16le__("CreateWindowEx failed"),0
 szCap       dw __utf16le__("IntelBurnTest"),0
@@ -623,8 +623,8 @@ szPreparing dw __utf16le__("Preparing test data"),0
 szFinished  dw __utf16le__("Finished"),0
 szStopped   dw __utf16le__("Stopped"),0
 szFailure   dw __utf16le__("Failure"),0
-szTitleFmt  dw __utf16le__("IntelBurnTest v3.00 - by Thejuampi [%s]"),0
-szTitleProg dw __utf16le__("IntelBurnTest v3.00 - by Thejuampi [Running] (%u of %u Completed)"),0
+szTitleFmt  dw __utf16le__("IntelBurnTest v3.1 - by Thejuampi [%s]"),0,0
+szTitleProg dw __utf16le__("IntelBurnTest v3.1 - by Thejuampi [Running] (%u of %u Completed)"),0,0
 szRamFmt    dw __utf16le__("%u MB"),0
 szNumFmt    dw __utf16le__("%u"),0
 szAboutCap  dw __utf16le__("About"),0
