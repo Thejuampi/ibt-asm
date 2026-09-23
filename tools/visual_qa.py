@@ -182,7 +182,7 @@ def main():
         text=True,
     )
     proc = subprocess.Popen([EXE], cwd=RUN_DIR)
-    main_hwnd = wait_exact("IntelBurnTest v3.00 - by Thejuampi [Idle]", proc.pid)
+    main_hwnd = wait_exact("IntelBurnTest v3.1 - by Thejuampi [Idle]", proc.pid)
     if not main_hwnd:
         proc.kill()
         raise SystemExit("NO_MAIN_WINDOW")

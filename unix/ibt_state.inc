@@ -130,7 +130,7 @@ tlsKey      resd 1
 
 section .data
 align 8
-szTitle       db 'IntelBurnTest v3.00 - by Thejuampi',0
+szTitle       db 'IntelBurnTest v3.1 - by Thejuampi',0,0
 szFont        db 'Segoe UI,DejaVu Sans:size=9',0
 szFontBold    db 'Segoe UI,DejaVu Sans:bold:size=9',0
 szFontLarge   db 'Segoe UI,DejaVu Sans:bold:size=20',0
