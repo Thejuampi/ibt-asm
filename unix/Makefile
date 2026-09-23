@@ -16,7 +16,9 @@ CORE_BUDGET := 16384
 
 all: $(TARGET) check
 
-$(OBJECT): ibt_unix.asm ibt_draw.inc ../ibt_lpk.inc ../bench_lib.inc \
+$(OBJECT): ibt_unix.asm ibt_state.inc ibt_app.inc ibt_window.inc \
+	ibt_events.inc ibt_layout.inc ibt_draw_primitives.inc ibt_bridge.inc \
+	ibt_draw.inc ../ibt_lpk.inc ../bench_lib.inc \
 	../res/flame4.bmp ../res/coffee4.bmp
 	$(NASM) -f elf64 -O9 -o $@ $<
 

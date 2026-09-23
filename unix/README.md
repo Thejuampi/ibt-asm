@@ -10,6 +10,13 @@ repository's existing
 Large calculation buffers are aligned for 2 MiB transparent huge pages and
 use Linux's best-effort `MADV_HUGEPAGE` hint to reduce TLB overhead.
 
+`ibt_unix.asm` is the small assembly entrypoint. Its ordered includes keep
+state (`ibt_state.inc`), startup (`ibt_app.inc`), X11 setup (`ibt_window.inc`),
+events (`ibt_events.inc`), layout (`ibt_layout.inc`), drawing primitives
+(`ibt_draw_primitives.inc`), and core/runtime bridges (`ibt_bridge.inc`)
+separate. `ibt_draw.inc` contains the presentation macros. The original
+numerical includes remain together at the end of the assembly unit.
+
 ## Build
 
 Requirements: NASM, a C linker, pthreads, the X11 and Xft development libraries,
