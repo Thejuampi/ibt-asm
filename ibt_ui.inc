@@ -879,33 +879,27 @@ PROC_FRAME apply_font_bold, 30h
     call SendMessageW
     ENDPROC
 
+; Populate the two fixed choice lists without repeating the Win64 call setup.
+%macro UI_COMBO_APPEND 1
+    mov rcx, rbx
+    mov edx, CB_ADDSTRING
+    xor r8d, r8d
+    lea r9, [%1]
+    call SendMessageW
+%endmacro
+
+%macro UI_THREAD_APPEND 1
+    lea r9, [%1]
+    call add_thr
+%endmacro
+
 PROC_FRAME ui_populate, 38h, rbx
     mov rbx, [hCmbStress]
-    mov rcx, rbx
-    mov edx, CB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [szStd]
-    call SendMessageW
-    mov rcx, rbx
-    mov edx, CB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [szHigh]
-    call SendMessageW
-    mov rcx, rbx
-    mov edx, CB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [szVHigh]
-    call SendMessageW
-    mov rcx, rbx
-    mov edx, CB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [szMax]
-    call SendMessageW
-    mov rcx, rbx
-    mov edx, CB_ADDSTRING
-    xor r8d, r8d
-    lea r9, [szCustom]
-    call SendMessageW
+    UI_COMBO_APPEND szStd
+    UI_COMBO_APPEND szHigh
+    UI_COMBO_APPEND szVHigh
+    UI_COMBO_APPEND szMax
+    UI_COMBO_APPEND szCustom
     mov rcx, rbx
     mov edx, CB_SETCURSEL
     xor r8d, r8d
@@ -913,44 +907,31 @@ PROC_FRAME ui_populate, 38h, rbx
     call SendMessageW
 
     mov rbx, [hCmbThr]
-    lea r9, [szAll]
-    call add_thr
-    lea r9, [szAuto]
-    call add_thr
-    lea r9, [szT1]
-    call add_thr
-    lea r9, [szT2]
-    call add_thr
-    lea r9, [szT3]
-    call add_thr
-    lea r9, [szT4]
-    call add_thr
-    lea r9, [szT6]
-    call add_thr
-    lea r9, [szT8]
-    call add_thr
-    lea r9, [szT12]
-    call add_thr
-    lea r9, [szT16]
-    call add_thr
-    lea r9, [szT24]
-    call add_thr
-    lea r9, [szT32]
-    call add_thr
-    lea r9, [szT48]
-    call add_thr
-    lea r9, [szT64]
-    call add_thr
-    lea r9, [szT96]
-    call add_thr
-    lea r9, [szT128]
-    call add_thr
+    UI_THREAD_APPEND szAll
+    UI_THREAD_APPEND szAuto
+    UI_THREAD_APPEND szT1
+    UI_THREAD_APPEND szT2
+    UI_THREAD_APPEND szT3
+    UI_THREAD_APPEND szT4
+    UI_THREAD_APPEND szT6
+    UI_THREAD_APPEND szT8
+    UI_THREAD_APPEND szT12
+    UI_THREAD_APPEND szT16
+    UI_THREAD_APPEND szT24
+    UI_THREAD_APPEND szT32
+    UI_THREAD_APPEND szT48
+    UI_THREAD_APPEND szT64
+    UI_THREAD_APPEND szT96
+    UI_THREAD_APPEND szT128
     mov rcx, rbx
     mov edx, CB_SETCURSEL
     xor r8d, r8d
     xor r9d, r9d
     call SendMessageW
     ENDPROC_SAVED 38h, rbx
+
+%unmacro UI_COMBO_APPEND 1
+%unmacro UI_THREAD_APPEND 1
 
 PROC_FRAME add_thr, 30h
     mov rcx, rbx

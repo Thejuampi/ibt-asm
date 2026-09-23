@@ -57,3 +57,25 @@
     %1 %$top
     %pop
 %endmacro
+
+; Fixed UI control call sites.  Like PROC_FRAME, these expand to the original
+; instructions; the validated numerical region stays byte-for-byte unchanged.
+%macro UI_CHILD_CALL 2
+    mov rcx, [%1]
+    call %2
+%endmacro
+
+%macro UI_INVALIDATE 1
+    mov rcx, [%1]
+    xor edx, edx
+    mov r8d, 1
+    call InvalidateRect
+%endmacro
+
+%macro UI_SUBCLASS 2
+    mov rcx, [%1]
+    lea rdx, [control_sub]
+    mov r8d, %2
+    xor r9d, r9d
+    call SetWindowSubclass
+%endmacro
