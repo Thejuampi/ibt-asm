@@ -23,7 +23,10 @@ make
 
 The build produces `IntelBurnTest.unpacked` for debugging, packs the distributable
 `IntelBurnTest` with UPX/LZMA, runs a headless numerical self-test, and fails if
-the distributable exceeds 23 KiB (23,552 bytes). You can repeat the test with:
+the distributable exceeds 23 KiB (23,552 bytes). It also keeps the contiguous
+numerical instruction span under a conservative 16 KiB budget. On the measured
+i7-12700K it is about 12.2 KiB versus a 32 KiB L1 instruction cache; capacity
+alone cannot guarantee permanent cache residency. You can repeat the test with:
 
 ```sh
 ./IntelBurnTest --selftest

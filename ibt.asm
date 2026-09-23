@@ -1329,14 +1329,10 @@ round_rect_draw:
     ret
 
 PROC_FRAME round_controls, 20h
-    mov rcx, [hEdtTimes]
-    call round_small
-    mov rcx, [hEdtMB]
-    call round_small
-    mov rcx, [hCmbStress]
-    call round_small
-    mov rcx, [hCmbThr]
-    call round_small
+    UI_CHILD_CALL hEdtTimes, round_small
+    UI_CHILD_CALL hEdtMB, round_small
+    UI_CHILD_CALL hCmbStress, round_small
+    UI_CHILD_CALL hCmbThr, round_small
     ENDPROC
 
 PROC_FRAME theme_apply_rounded, 20h

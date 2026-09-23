@@ -238,36 +238,20 @@ PROC_FRAME theme_apply, 30h
     mov r8, [hBrBg]
     call SetClassLongPtrW
     call theme_btns
-    mov rcx, [hCmbStress]
-    call theme_cmb_style
-    mov rcx, [hCmbThr]
-    call theme_cmb_style
-    mov rcx, [hEdtTimes]
-    call theme_edge
-    mov rcx, [hEdtMB]
-    call theme_edge
+    UI_CHILD_CALL hCmbStress, theme_cmb_style
+    UI_CHILD_CALL hCmbThr, theme_cmb_style
+    UI_CHILD_CALL hEdtTimes, theme_edge
+    UI_CHILD_CALL hEdtMB, theme_edge
     mov rcx, [hMain]
     lea rdx, [theme_onchild]
     xor r8d, r8d
     call EnumChildWindows
     xor eax, eax
     call flame_show
-    mov rcx, [hEdtTimes]
-    xor edx, edx
-    mov r8d, 1
-    call InvalidateRect
-    mov rcx, [hEdtMB]
-    xor edx, edx
-    mov r8d, 1
-    call InvalidateRect
-    mov rcx, [hCmbStress]
-    xor edx, edx
-    mov r8d, 1
-    call InvalidateRect
-    mov rcx, [hCmbThr]
-    xor edx, edx
-    mov r8d, 1
-    call InvalidateRect
+    UI_INVALIDATE hEdtTimes
+    UI_INVALIDATE hEdtMB
+    UI_INVALIDATE hCmbStress
+    UI_INVALIDATE hCmbThr
     mov rcx, [hMain]
     xor edx, edx
     mov r8d, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN|RDW_UPDATENOW
@@ -300,10 +284,8 @@ PROC_FRAME theme_cmb_style, 38h, rbx
     ENDPROC_SAVED 38h, rbx
 
 PROC_FRAME theme_droplist, 20h
-    mov rcx, [hCmbStress]
-    call theme_combo_list
-    mov rcx, [hCmbThr]
-    call theme_combo_list
+    UI_CHILD_CALL hCmbStress, theme_combo_list
+    UI_CHILD_CALL hCmbThr, theme_combo_list
     ENDPROC
 
 PROC_FRAME theme_combo_list, 68h, rbx
@@ -341,26 +323,10 @@ PROC_FRAME theme_combo_list, 68h, rbx
     ENDPROC_SAVED 68h, rbx
 
 PROC_FRAME theme_hook, 30h
-    mov rcx, [hEdtTimes]
-    lea rdx, [control_sub]
-    mov r8d, 2
-    xor r9d, r9d
-    call SetWindowSubclass
-    mov rcx, [hEdtMB]
-    lea rdx, [control_sub]
-    mov r8d, 2
-    xor r9d, r9d
-    call SetWindowSubclass
-    mov rcx, [hCmbStress]
-    lea rdx, [control_sub]
-    mov r8d, 3
-    xor r9d, r9d
-    call SetWindowSubclass
-    mov rcx, [hCmbThr]
-    lea rdx, [control_sub]
-    mov r8d, 3
-    xor r9d, r9d
-    call SetWindowSubclass
+    UI_SUBCLASS hEdtTimes, 2
+    UI_SUBCLASS hEdtMB, 2
+    UI_SUBCLASS hCmbStress, 3
+    UI_SUBCLASS hCmbThr, 3
     ENDPROC
 
 PROC_FRAME theme_edge, 38h, rbx

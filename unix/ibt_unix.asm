@@ -5,6 +5,7 @@ default rel
 ; The numerical engine is included verbatim from the Windows build below.
 
 %define SELFTEST 0
+%include "ibt_draw.inc"
 
 global _start
 
@@ -1083,27 +1084,10 @@ draw_ui:
     push rbp
     mov rbp, rsp
     mov dword [uiDirty], 0
-    mov edi, 0
-    mov esi, 0
-    mov edx, 620
-    mov ecx, 400
-    mov r8d, COL_BG
-    call fill
-    mov edi, 12
-    mov esi, 18
-    mov edx, 426
-    mov ecx, 124
-    call panel
-    mov edi, 450
-    mov esi, 18
-    mov edx, 158
-    mov ecx, 124
-    call panel
-    mov edi, 12
-    mov esi, 154
-    mov edx, 596
-    mov ecx, 234
-    call panel
+    DRAW_RECT 0, 0, 620, 400, COL_BG, fill
+    DRAW_PANEL 12, 18, 426, 124
+    DRAW_PANEL 450, 18, 158, 124
+    DRAW_PANEL 12, 154, 596, 234
     call draw_config
     call draw_thermal
     call draw_results
@@ -1124,22 +1108,9 @@ draw_ui:
 draw_config:
     push rbp
     mov rbp, rsp
-    mov edi, 20
-    mov esi, 8
-    mov edx, 166
-    mov ecx, 18
-    mov r8d, COL_BG
-    call fill
-    mov edi, 26
-    mov esi, 24
-    lea rdx, [szConfig]
-    mov ecx, COL_FG
-    call text_bold
-    mov edi, 24
-    mov esi, 57
-    lea rdx, [szMode]
-    mov ecx, COL_FG
-    call text
+    DRAW_RECT 20, 8, 166, 18, COL_BG, fill
+    DRAW_LABEL 26, 24, szConfig, COL_FG, text_bold
+    DRAW_LABEL 24, 57, szMode, COL_FG, text
     mov edi, 66
     mov esi, 57
     lea rdx, [szModeValue]
@@ -1152,32 +1123,15 @@ draw_config:
 .mode:
     mov ecx, COL_ACCENT
     call text
-    mov edi, 148
-    mov esi, 57
-    lea rdx, [szStress]
-    mov ecx, COL_FG
-    call text
-    mov edi, 222
-    mov esi, 36
-    mov edx, 105
-    mov ecx, 26
-    call input_box
+    DRAW_LABEL 148, 57, szStress, COL_FG, text
+    DRAW_INPUT 222, 36, 105, 26
     mov eax, [stressChoice]
     lea rdx, [stressNames]
     mov rdx, [rdx+rax*8]
-    mov edi, 230
-    mov esi, 54
-    mov ecx, COL_FG
-    call text
-    mov edi, 326
-    mov esi, 49
-    call draw_chevron
+    DRAW_SELECTED 230, 54, COL_FG, text
+    DRAW_CHEVRON 326, 49
 
-    mov edi, 336
-    mov esi, 37
-    mov edx, 55
-    mov ecx, 26
-    call input_box
+    DRAW_INPUT 336, 37, 55, 26
     mov eax, [stressChoice]
     cmp eax, 3
     je .maxmb
@@ -1206,106 +1160,44 @@ draw_config:
     mov ecx, COL_FG
 .mbtext:
     call text
-    mov edi, 397
-    mov esi, 55
-    lea rdx, [szMB]
-    mov ecx, COL_FG
-    call text_bold
+    DRAW_LABEL 397, 55, szMB, COL_FG, text_bold
 
-    mov edi, 24
-    mov esi, 92
-    lea rdx, [szTimes]
-    mov ecx, COL_FG
-    call text
-    mov edi, 100
-    mov esi, 74
-    mov edx, 48
-    mov ecx, 26
-    call input_box
+    DRAW_LABEL 24, 92, szTimes, COL_FG, text
+    DRAW_INPUT 100, 74, 48, 26
     mov eax, [timesValue]
     lea rdi, [dynBuf]
     call u32toa
-    mov edi, 107
-    mov esi, 92
-    lea rdx, [dynBuf]
-    mov ecx, COL_FG
-    call text
+    DRAW_LABEL 107, 92, dynBuf, COL_FG, text
 
-    mov edi, 164
-    mov esi, 92
-    lea rdx, [szThreads]
-    mov ecx, COL_FG
-    call text
-    mov edi, 222
-    mov esi, 74
-    mov edx, 72
-    mov ecx, 26
-    call input_box
+    DRAW_LABEL 164, 92, szThreads, COL_FG, text
+    DRAW_INPUT 222, 74, 72, 26
     mov eax, [threadChoice]
     lea rdx, [threadNames]
     mov rdx, [rdx+rax*8]
-    mov edi, 228
-    mov esi, 92
-    mov ecx, COL_FG
-    call text
-    mov edi, 291
-    mov esi, 87
-    call draw_chevron
+    DRAW_SELECTED 228, 92, COL_FG, text
+    DRAW_CHEVRON 291, 87
 
-    mov edi, 306
-    mov esi, 92
-    lea rdx, [szFree]
-    mov ecx, COL_FG
-    call text
+    DRAW_LABEL 306, 92, szFree, COL_FG, text
     mov eax, [freeMB]
     lea rdi, [dynBuf]
     call u32toa
-    mov edi, 370
-    mov esi, 92
-    lea rdx, [dynBuf]
-    mov ecx, COL_FG
-    call text
+    DRAW_LABEL 370, 92, dynBuf, COL_FG, text
 
-    mov edi, 24
-    mov esi, 112
-    mov edx, 13
-    mov ecx, 13
-    mov r8d, COL_BORDER
-    mov r9d, 2
-    call round_fill
-    mov edi, 25
-    mov esi, 113
-    mov edx, 11
-    mov ecx, 11
-    mov r8d, COL_PANEL
-    mov r9d, 1
-    call round_fill
+    DRAW_ROUND 24, 112, 13, 13, COL_BORDER, 2
+    DRAW_ROUND 25, 113, 11, 11, COL_PANEL, 1
     cmp dword [logEnabled], 0
     je .logtxt
     call draw_log_check
 .logtxt:
-    mov edi, 43
-    mov esi, 124
-    lea rdx, [szLog]
-    mov ecx, COL_FG
-    call text
+    DRAW_LABEL 43, 124, szLog, COL_FG, text
     pop rbp
     ret
 
 draw_thermal:
     push rbp
     mov rbp, rsp
-    mov edi, 456
-    mov esi, 8
-    mov edx, 126
-    mov ecx, 18
-    mov r8d, COL_BG
-    call fill
-    mov edi, 462
-    mov esi, 24
-    lea rdx, [szThermal]
-    mov ecx, COL_FG
-    call text_bold
+    DRAW_RECT 456, 8, 126, 18, COL_BG, fill
+    DRAW_LABEL 462, 24, szThermal, COL_FG, text_bold
     mov edi, 526
     mov esi, 30
     mov edx, 70
@@ -1351,33 +1243,16 @@ draw_thermal:
     mov ecx, COL_DARK
 .stoptxt:
     call text_center
-    mov edi, 462
-    mov esi, 105
-    mov edx, 43
-    mov ecx, 26
-    call input_box
-    mov edi, 483
-    mov esi, 123
-    lea rdx, [szAbout]
-    mov ecx, COL_FG
-    call text_center
+    DRAW_INPUT 462, 105, 43, 26
+    DRAW_LABEL 483, 123, szAbout, COL_FG, text_center
     pop rbp
     ret
 
 draw_results:
     push rbp
     mov rbp, rsp
-    mov edi, 20
-    mov esi, 144
-    mov edx, 166
-    mov ecx, 18
-    mov r8d, COL_BG
-    call fill
-    mov edi, 26
-    mov esi, 160
-    lea rdx, [szMonitor]
-    mov ecx, COL_FG
-    call text_bold
+    DRAW_RECT 20, 144, 166, 18, COL_BG, fill
+    DRAW_LABEL 26, 160, szMonitor, COL_FG, text_bold
     mov edi, 24
     mov esi, 170
     mov edx, 572
@@ -1394,18 +1269,8 @@ draw_results:
 .card:
     mov r9d, 6
     call round_fill
-    mov edi, 25
-    mov esi, 171
-    mov edx, 570
-    mov ecx, 202
-    mov r8d, COL_EDIT
-    mov r9d, 5
-    call round_fill
-    mov edi, 42
-    mov esi, 196
-    lea rdx, [szProgress]
-    mov ecx, COL_MUTED
-    call text_bold
+    DRAW_ROUND 25, 171, 570, 202, COL_EDIT, 5
+    DRAW_LABEL 42, 196, szProgress, COL_MUTED, text_bold
     mov eax, [resultState]
     lea rdx, [szReady]
     cmp eax, RESULT_RUNNING
@@ -1440,13 +1305,7 @@ draw_results:
     mov ecx, COL_DANGER
 .statetext:
     call text_right_bold
-    mov edi, 42
-    mov esi, 214
-    mov edx, 536
-    mov ecx, 8
-    mov r8d, COL_PANEL
-    mov r9d, 4
-    call round_fill
+    DRAW_ROUND 42, 214, 536, 8, COL_PANEL, 4
     cmp dword [targetRuns], 0
     je .phase
     mov eax, [passCount]
@@ -1506,11 +1365,7 @@ draw_results:
     mov ecx, COL_FG
     call text
 .metrics:
-    mov edi, 266
-    mov esi, 283
-    lea rdx, [szGflops]
-    mov ecx, COL_MUTED
-    call text_bold
+    DRAW_LABEL 266, 283, szGflops, COL_MUTED, text_bold
     mov edi, 256
     mov esi, 285
     lea rdx, [szDash]
@@ -1520,11 +1375,7 @@ draw_results:
 .speed:
     mov ecx, COL_FG
     call text_right_large
-    mov edi, 578
-    mov esi, 258
-    lea rdx, [szLastRun]
-    mov ecx, COL_MUTED
-    call text_right
+    DRAW_LABEL 578, 258, szLastRun, COL_MUTED, text_right
     mov edi, 578
     mov esi, 283
     lea rdx, [szDash]
@@ -1550,11 +1401,7 @@ draw_results:
     cmp byte [resultTime], 0
     je .signature
 .signature:
-    mov edi, 42
-    mov esi, 323
-    lea rdx, [szSignature]
-    mov ecx, COL_MUTED
-    call text_bold
+    DRAW_LABEL 42, 323, szSignature, COL_MUTED, text_bold
     mov edi, 42
     mov esi, 354
     lea rdx, [szAwaiting]
@@ -1727,49 +1574,14 @@ draw_assets:
 draw_about:
     push rbp
     mov rbp, rsp
-    mov edi, 105
-    mov esi, 90
-    mov edx, 410
-    mov ecx, 240
-    mov r8d, COL_PANEL
-    call fill
-    mov edi, 105
-    mov esi, 90
-    mov edx, 410
-    mov ecx, 240
-    mov r8d, COL_BORDER
-    call outline
-    mov edi, 132
-    mov esi, 128
-    lea rdx, [szAboutHead]
-    mov ecx, COL_ACCENT
-    call text
-    mov edi, 132
-    mov esi, 165
-    lea rdx, [szAbout1]
-    mov ecx, COL_FG
-    call text
-    mov edi, 132
-    mov esi, 195
-    lea rdx, [szAbout2]
-    mov ecx, COL_MUTED
-    call text
-    mov edi, 132
-    mov esi, 225
-    lea rdx, [szAbout3]
-    mov ecx, COL_MUTED
-    call text
-    mov edi, 270
-    mov esi, 294
-    mov edx, 80
-    mov ecx, 34
-    mov r8d, COL_ACCENT
-    call fill
-    mov edi, 301
-    mov esi, 317
-    lea rdx, [szOK]
-    mov ecx, COL_DARK
-    call text
+    DRAW_RECT 105, 90, 410, 240, COL_PANEL, fill
+    DRAW_RECT 105, 90, 410, 240, COL_BORDER, outline
+    DRAW_LABEL 132, 128, szAboutHead, COL_ACCENT, text
+    DRAW_LABEL 132, 165, szAbout1, COL_FG, text
+    DRAW_LABEL 132, 195, szAbout2, COL_MUTED, text
+    DRAW_LABEL 132, 225, szAbout3, COL_MUTED, text
+    DRAW_RECT 270, 294, 80, 34, COL_ACCENT, fill
+    DRAW_LABEL 301, 317, szOK, COL_DARK, text
     pop rbp
     ret
 
