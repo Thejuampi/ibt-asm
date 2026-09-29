@@ -19,27 +19,27 @@ numerical includes remain together at the end of the assembly unit.
 
 ## Build
 
-Requirements: NASM, a C linker, pthreads, the X11 and Xft development libraries,
-and UPX.
+Requirements: GNU Make, NASM, a C linker, binutils, pthreads, the X11 and Xft
+development libraries, and UPX. Use the shared Makefile in the repository root:
 
 ```sh
-cd unix
-make
-./IntelBurnTest
+make linux
+./bin/IntelBurnTest-linux-x64
 ```
 
-The build produces `IntelBurnTest.unpacked` for debugging, packs the distributable
-`IntelBurnTest` with UPX/LZMA, runs a headless numerical self-test, and fails if
-the distributable exceeds 23 KiB (23,552 bytes). It also keeps the contiguous
+The build produces `bin/IntelBurnTest-linux-x64.unpacked` for debugging, packs the
+distributable `bin/IntelBurnTest-linux-x64` with UPX/LZMA, runs a headless numerical
+self-test, and fails if the distributable exceeds 23 KiB (23,552 bytes). It also
+keeps the contiguous
 numerical instruction span under a conservative 16 KiB budget. On the measured
 i7-12700K it is about 12.2 KiB versus a 32 KiB L1 instruction cache; capacity
 alone cannot guarantee permanent cache residency. You can repeat the test with:
 
 ```sh
-./IntelBurnTest --selftest
+make linux-selftest
 ```
 
-For UI smoke testing, `./IntelBurnTest --smoketest` opens a 1 MB, two-run test
+For UI smoke testing, `./bin/IntelBurnTest-linux-x64 --smoketest` opens a 1 MB, two-run test
 with logging enabled; close the window after the result appears.
 
 The native target is Linux on x86-64. Other Unix systems need small changes in

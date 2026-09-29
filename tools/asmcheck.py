@@ -1,7 +1,12 @@
 import re
 import sys
+from pathlib import Path
 
-LST = r"C:\Users\Juan\Desktop\ibt-asm\bin\ibt.lst"
+LST = (
+    Path(sys.argv[1])
+    if len(sys.argv) > 1
+    else Path(__file__).resolve().parent.parent / "bin" / "ibt.lst"
+)
 HOT = re.compile(
     r"^(lp_k|lp_pack|lp_dgemm|lp_dget|lp_dtrsm|lp_scale|lp_daxpy|lp_pivot|lp_steal|lp_par|lp_worker|lp_panel)"
 )
