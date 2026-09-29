@@ -4,7 +4,7 @@
 
 **An x86-64 CPU stability test written entirely in assembly and tuned for modern Intel processors.**
 
-[Download Windows v3.1.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64) · [Release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0) · [Build from source](#build-from-source)
+[Website](https://thejuampi.github.io/ibt-asm/) · [Download Windows v3.1.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64) · [Release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0) · [Build from source](#build-from-source)
 
 </div>
 
@@ -193,6 +193,7 @@ ibt_theme.inc       custom-control and dark-interface drawing
 ibt_lpk.inc         test orchestration and numerical routines
 bench_lib.inc       optimized matrix kernels
 res/                source and compiled graphical assets
+site/               static website, published from the gh-pages branch
 tools/              asset generation, alignment checks, size reports, and QA
 unix/               Linux/x86-64 X11 frontend, build, and size gate
 ```
