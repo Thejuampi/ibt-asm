@@ -4,27 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0d12">
-  <meta name="description" content="Test your CPU overclock with IntelBurnTest ASM (IBT). Run a sustained workload, compare every completed run, and catch instability on Windows or Linux.">
+  <meta name="description" content="Test your CPU overclock with IntelBurnTest ASM (IBT). Choose a Windows or Linux build, run a sustained workload, and see whether every completed run agrees.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="IntelBurnTest ASM — Is your CPU overclock stable?">
-  <meta property="og:description" content="Put your CPU overclock under sustained load. IBT compares every completed run and flags a mismatch.">
-  <meta property="og:image" content="https://raw.githubusercontent.com/Thejuampi/ibt-asm/main/.github/assets/ibt-windows-unix.webp">
+  <meta property="og:description" content="Stress your CPU overclock, compare every completed run, and get a clear stability verdict under load.">
+  <meta property="og:image" content="https://thejuampi.github.io/ibt-asm/assets/ibt-passed.webp">
+  <meta property="og:image:alt" content="IntelBurnTest showing three completed runs with matching results">
   <title>IntelBurnTest ASM (IBT) — CPU Overclock Stability Test</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/ibt-windows-unix.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/ibt-passed.webp" as="image" type="image/webp">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="site-header">
+  <header class="site-header wrap">
     <a class="brand" href="#top" aria-label="IntelBurnTest ASM home">
       <span class="brand-icon" aria-hidden="true">I<span>B</span>T</span>
       <span>IntelBurnTest <small>ASM</small></span>
     </a>
     <nav aria-label="Main navigation">
-      <a href="#how-it-works">The stability test</a>
-      <a href="#platforms">Windows + Linux</a>
+      <a href="#how-to">How to test</a>
+      <a href="#results">Read the result</a>
       <a href="https://github.com/Thejuampi/ibt-asm">Source <span aria-hidden="true">↗</span></a>
     </nav>
     <a class="header-cta" href="#download">Download IBT <span aria-hidden="true">↘</span></a>
@@ -35,82 +36,89 @@
       <div class="hero-copy">
         <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span> IBT · CPU OVERCLOCK STABILITY TEST · V3.1.0</p>
         <h1 id="hero-title">Is your overclock<br><em>actually stable?</em></h1>
-        <p class="hero-lede">Raised the clocks? Now find out if the tune holds under load. IntelBurnTest stresses your CPU in repeated runs and flags any mismatched result.</p>
+        <p class="hero-lede">Raised the clocks? Put your CPU under sustained load and see if the results hold up. IBT repeats a demanding numerical workload and flags a run that disagrees.</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#download">Download the stability test <span aria-hidden="true">↗</span></a>
-          <a class="button button-ghost" href="#how-it-works">See how it works <span aria-hidden="true">↗</span></a>
+          <a class="button button-primary" href="#download">Choose your download <span aria-hidden="true">↘</span></a>
+          <a class="button button-ghost" href="#how-to">How to run the test <span aria-hidden="true">↗</span></a>
         </div>
-        <p class="hero-note">No installer. One executable per platform. x86-64 only.</p>
+        <p class="hero-note">Free download · Source available on GitHub · Windows and Linux x86-64</p>
       </div>
-      <div class="hero-stage">
-        <div class="stage-heading"><span class="stage-pulse" aria-hidden="true"></span> STRESS YOUR CPU ON WINDOWS OR LINUX. <span>01 / 02</span></div>
-        <figure class="hero-screenshot">
-          <img src="assets/ibt-windows-unix.webp" width="1240" height="400" alt="IntelBurnTest graphical interfaces side by side: Windows on the left and Linux with X11 on the right">
-          <figcaption><span>WINDOWS x64</span><span>LINUX / X11 x64</span></figcaption>
-        </figure>
-        <div class="stage-footer"><span>Same stability check on both platforms</span><span aria-hidden="true">● ● ●</span></div>
+      <figure class="result-visual">
+        <div class="visual-topline"><span class="status-light" aria-hidden="true"></span> A COMPLETED CHECK <span>03 / 03 RUNS</span></div>
+        <img src="assets/ibt-passed.webp" width="636" height="439" alt="IntelBurnTest Stability Monitor showing three completed runs, a passed verdict, and matching results">
+        <figcaption><strong>Every completed run matched.</strong><span>Windows v3.0 screenshot · v3.1.0 downloads below</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="download-band" id="download" aria-labelledby="download-title">
+      <div class="wrap">
+        <div class="section-heading">
+          <div><p class="eyebrow">01 / GET IBT</p><h2 id="download-title">Choose your platform.<br><em>Start testing.</em></h2></div>
+          <p>Official v3.1.0 builds from GitHub Releases. Each platform gets one native executable, with no installer or account.</p>
+        </div>
+        <div class="download-grid">
+          <article class="download-card">
+            <span class="platform-label">WINDOWS · X64</span>
+            <h3>IntelBurnTest.exe</h3>
+            <p>For Windows 10 or 11. The executable is unsigned, so SmartScreen may prompt on first launch.</p>
+            <a class="button button-primary" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe">Download for Windows <span aria-hidden="true">↗</span></a>
+            <span class="file-detail">V3.1.0 · 27,136 BYTES</span>
+          </article>
+          <article class="download-card">
+            <span class="platform-label">LINUX · X64 / X11</span>
+            <h3>IntelBurnTest-linux-x64</h3>
+            <p>Requires glibc, X11, and Xft. After downloading, run <code>chmod +x IntelBurnTest-linux-x64</code>.</p>
+            <a class="button button-outline" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64">Download for Linux <span aria-hidden="true">↗</span></a>
+            <span class="file-detail">V3.1.0 · 21,060 BYTES</span>
+          </article>
+        </div>
+        <p class="download-links"><a href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0">Release notes and checksums ↗</a><a href="https://github.com/Thejuampi/ibt-asm#build-from-source">Build from source ↗</a></p>
       </div>
     </section>
 
-    <div class="spec-rail" aria-label="Project essentials">
-      <div class="wrap spec-grid">
-        <div><span class="spec-number">02</span><span>native platforms</span></div>
-        <div><span class="spec-number">01</span><span>reference result</span></div>
-        <div><span class="spec-number">03</span><span>CPU paths: SSE2 / AVX / AVX2</span></div>
-        <div><span class="spec-number">00</span><span>installers required</span></div>
-      </div>
-    </div>
-
-    <section class="method wrap section" id="how-it-works" aria-labelledby="method-title">
-      <div class="section-lead">
-        <p class="eyebrow">01 / TEST YOUR OVERCLOCK</p>
-        <h2 id="method-title">Push it hard.<br><em>Check every run.</em></h2>
-        <p>GFLOPS shows how fast the workload ran. To check stability, IBT compares the numerical result of each completed run. If one differs, your setup failed this check.</p>
-        <a class="text-link" href="https://github.com/Thejuampi/ibt-asm#how-stability-is-determined">How IBT determines stability <span aria-hidden="true">↗</span></a>
+    <section class="how-to wrap section" id="how-to" aria-labelledby="how-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">02 / RUN A USEFUL CHECK</p><h2 id="how-title">Test the tune<br><em>you plan to use.</em></h2></div>
+        <p>Choose a workload, watch temperatures, and let every requested run finish. You can start small and increase pressure as you tune.</p>
       </div>
       <div class="steps">
-        <article><span class="step-index">01 / CONFIGURE</span><h3>Choose your stress level.</h3><p>Set the memory load, run count, and threads for the overclock you want to check.</p></article>
-        <article><span class="step-index">02 / STRESS</span><h3>Put the CPU to work.</h3><p>IBT drives a sustained numerical workload through the best supported SSE2, AVX, or AVX2 path.</p></article>
-        <article><span class="step-index">03 / VERIFY</span><h3>Catch a bad run.</h3><p>The first completed run sets the reference. Every later run must produce the same signature to pass.</p></article>
+        <article><span class="step-number">01</span><h3>Get ready for heat.</h3><p>Check your cooling, close unnecessary apps, and keep a temperature monitor open during the test.</p></article>
+        <article><span class="step-number">02</span><h3>Set the workload.</h3><p>Choose stress level, run count, and threads. For CPU tuning, <strong>High · 10 runs · All threads</strong> is one suggested starting point.</p></article>
+        <article><span class="step-number">03</span><h3>Run it to completion.</h3><p>Press Start and wait for the verdict. If IBT finds a mismatch, adjust the setup and test again.</p></article>
       </div>
+      <p class="guide-note">Suggested settings are starting points, not universal pass criteria. Increase duration and memory pressure gradually. <a href="https://github.com/Thejuampi/ibt-asm#choosing-a-stress-level">See all stress levels ↗</a></p>
     </section>
 
-    <section class="monitor-band" aria-labelledby="monitor-title">
-      <div class="wrap monitor-grid">
-        <div class="monitor-copy">
-          <p class="eyebrow">02 / SEE THE VERDICT</p>
-          <h2 id="monitor-title">Know when<br><em>a run disagrees.</em></h2>
-          <p>Watch run progress, speed, and the result in one window. A pass appears only after every requested run completes with a matching signature; stopping early does not count.</p>
-          <div class="monitor-status"><span class="status-light" aria-hidden="true"></span><span>PASS</span><span>Every requested run completed and matched</span></div>
+    <section class="results-band" id="results" aria-labelledby="results-title">
+      <div class="wrap section">
+        <div class="section-heading">
+          <div><p class="eyebrow">03 / READ THE VERDICT</p><h2 id="results-title">A pass is earned<br><em>run by run.</em></h2></div>
+          <p>The first completed run sets a reference signature. Every later run must match it. GFLOPS reports speed; the matching results determine the stability verdict.</p>
         </div>
-        <figure class="monitor-image">
-          <img src="assets/ibt-passed.webp" width="636" height="439" alt="IntelBurnTest showing three completed, matching runs and a passed verdict">
-          <figcaption>Actual application screen · Windows v3.0 monitor</figcaption>
-        </figure>
+        <div class="verdict-grid">
+          <article class="verdict-card passed"><span>PASS</span><h3>All runs match.</h3><p>Every requested run completed with the same signature under this workload.</p></article>
+          <article class="verdict-card failed"><span>FAILURE</span><h3>A run disagrees.</h3><p>A numerical mismatch or unexpected termination was detected. Revisit the setup before relying on it.</p></article>
+          <article class="verdict-card stopped"><span>STOPPED</span><h3>No stability verdict.</h3><p>The test ended before all requested runs completed, so it cannot count as a pass.</p></article>
+        </div>
+        <p class="result-limit">A pass shows repeatable results under this workload. It cannot guarantee stability in every application or workload.</p>
       </div>
     </section>
 
-    <section class="platforms wrap section" id="platforms" aria-labelledby="platform-title">
-      <div class="section-headline">
-        <div><p class="eyebrow">03 / WINDOWS + LINUX</p><h2 id="platform-title">Your platform.<br><em>Same stress test.</em></h2></div>
-        <p>Windows and Linux share the same in-process numerical core. Choose the native build for your machine and run the same stability check.</p>
+    <section class="technical wrap section" aria-labelledby="technical-title">
+      <div>
+        <p class="eyebrow">04 / UNDER THE HOOD</p>
+        <h2 id="technical-title">What IBT runs<br><em>on your CPU.</em></h2>
+        <p>The Windows and Linux builds share one x86-64 assembly numerical core. Each has a native interface; the test workload stays the same.</p>
+        <a class="text-link" href="https://github.com/Thejuampi/ibt-asm">Inspect the source ↗</a>
       </div>
-      <div class="platform-grid">
-        <article><span class="platform-icon" aria-hidden="true">▦</span><div><h3>Windows x64</h3><p>Windows 10 or 11. One unsigned executable; SmartScreen may prompt on first launch.</p></div><span class="platform-foot">27,136 bytes · v3.1.0</span></article>
-        <article><span class="platform-icon terminal-icon" aria-hidden="true">&gt;_</span><div><h3>Linux x64 / X11</h3><p>One native executable. Requires glibc, X11, and Xft on the host.</p></div><span class="platform-foot">21,060 bytes · v3.1.0</span></article>
+      <div class="technical-list">
+        <div><strong>Sustained load</strong><span>Repeated numerical work keeps the selected CPU threads under pressure.</span></div>
+        <div><strong>Automatic CPU path</strong><span>IBT selects SSE2, AVX, or AVX2 at startup.</span></div>
+        <div><strong>In-process kernels</strong><span>No separate LINPACK executable or MKL installation is needed.</span></div>
       </div>
     </section>
 
-    <aside class="safety wrap" aria-label="Safety note"><span class="safety-icon" aria-hidden="true">!</span><p><strong>Expect heat.</strong> This test intentionally drives sustained CPU load and power draw. Monitor temperatures and stop if the system exceeds safe operating limits. A pass under this workload is not a guarantee of universal stability.</p></aside>
-
-    <section class="download-section wrap section" id="download" aria-labelledby="download-title">
-      <div class="download-heading"><p class="eyebrow">04 / TEST YOUR TUNING</p><h2 id="download-title">Ready to check<br><em>that overclock?</em></h2><p>Download the official v3.1.0 build for your platform and put your CPU tuning under load. No installer or account.</p></div>
-      <div class="download-grid">
-        <a class="download-card" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe" download><span class="download-platform">WINDOWS x64</span><strong>IntelBurnTest.exe</strong><span>27,136 bytes · unsigned executable</span><span class="download-arrow" aria-hidden="true">↗</span></a>
-        <a class="download-card" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64" download><span class="download-platform">LINUX x64 / X11</span><strong>IntelBurnTest-linux-x64</strong><span>21,060 bytes · <code>chmod +x</code> before running</span><span class="download-arrow" aria-hidden="true">↗</span></a>
-      </div>
-      <p class="download-extra">Prefer to inspect first? <a href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0">Release notes and checksums ↗</a> <span aria-hidden="true">·</span> <a href="https://github.com/Thejuampi/ibt-asm#build-from-source">Build from source ↗</a></p>
-    </section>
+    <aside class="safety wrap" aria-label="Safety note"><span class="safety-icon" aria-hidden="true">!</span><p><strong>Expect heat.</strong> IBT intentionally drives sustained CPU load and power draw. Monitor temperatures and stop if the system exceeds safe operating limits.</p></aside>
   </main>
 
   <footer class="site-footer"><div class="wrap footer-grid"><a class="brand" href="#top"><span class="brand-icon" aria-hidden="true">I<span>B</span>T</span><span>IntelBurnTest <small>ASM</small></span></a><p>Made by Thejuampi. Built to help spot unstable overclocks.</p><div><a href="https://github.com/Thejuampi/ibt-asm">GitHub</a><a href="https://github.com/Thejuampi/ibt-asm/releases">Releases</a><a href="https://buymeacoffee.com/thejuampi">Buy me a coffee</a></div></div></footer>
