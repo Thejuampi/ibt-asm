@@ -127,6 +127,24 @@ These are examples, not universal pass criteria. Increase duration and memory pr
 
 ## Build from source
 
+Use the **single Makefile in the repository root** for both platforms:
+
+```console
+make windows
+make linux
+```
+
+Run `make windows` in a Windows x64 Native Tools shell and `make linux` in a
+Linux x86-64 shell (including WSL). Each command uses that platform's native
+toolchain. Both write their output to `bin/`:
+
+| Command | Executable |
+|---|---|
+| `make windows` | `bin/IntelBurnTest.exe` |
+| `make linux` | `bin/IntelBurnTest-linux-x64` |
+
+Plain `make` selects the host platform automatically.
+
 ### Windows requirements
 
 - Windows 10 or 11, x64
@@ -137,55 +155,58 @@ These are examples, not universal pass criteria. Increase duration and memory pr
 - Pillow only for graphical asset generation and visual QA
 - UPX only for the optional packed release build
 
-Open an **x64 Native Tools Command Prompt for VS 2022**, change to the repository directory, and run:
+Open an **x64 Native Tools Command Prompt for VS 2022**, change to the repository root, and run:
 
 ```console
-make
+make windows
 ```
 
-The executable is written to `bin/IntelBurnTest.exe`.
-
-Useful targets:
+The build checks assembly alignment and verifies the numerical code against
+the validated baseline. Additional Windows targets:
 
 ```console
-make selftest  # build and run the internal numerical self-test
-make visual    # exercise and capture the complete UI state set
-make size      # print a routine-level code-size report
-make assets    # regenerate icon and bitmap resources
-make packed    # create dist/IntelBurnTest.exe using UPX/LZMA
-make clean
+make windows-selftest  # build and run the internal numerical self-test
+make windows-packed    # create dist/IntelBurnTest.exe using UPX/LZMA
+make windows-size      # print a routine-level code-size report
+make visual            # exercise and capture the complete Windows UI state set
+make assets            # regenerate icon and bitmap resources
 ```
 
 Tool paths can be overridden when necessary:
 
 ```console
-make NASM=C:\tools\nasm.exe PYTHON=py
+make windows NASM=C:\tools\nasm.exe PYTHON=py
 ```
 
-### Linux/X11 build
+### Linux requirements
 
-The Unix frontend reproduces the Windows 620 x 400 client area, dark layout,
-control geometry, original flame and coffee assets, run states, residual
-comparison, and optional `results.log`. It includes
-`ibt_lpk.inc` and `bench_lib.inc` directly rather than maintaining a second
-calculation implementation.
+- Linux x86-64 (or WSL)
+- GNU Make and NASM
+- A C linker and binutils (`strip`, `nm`, and `size`)
+- X11 and Xft development libraries, glibc, and pthreads
+- UPX for the packed executable
 
-Install NASM, a C linker, the X11 and Xft development libraries, pthreads, and
-UPX, then run:
+From the same repository root, run:
 
 ```console
-cd unix
-make
-./IntelBurnTest
+make linux
+./bin/IntelBurnTest-linux-x64
 ```
 
-`make` runs a headless numerical self-test and enforces a 23 KiB maximum for
-the packed Unix distributable. See [`unix/README.md`](unix/README.md) for the
-Unix-specific details and UI smoke-test command.
+The build also keeps `bin/IntelBurnTest-linux-x64.unpacked` for debugging,
+runs a headless numerical self-test, and enforces the 23 KiB executable and
+16 KiB numerical instruction-span limits. Use `make linux-selftest` to repeat
+those checks or `make linux-size` to print the packed executable's size.
+See [`unix/README.md`](unix/README.md) for the frontend details and UI smoke test.
+
+`make selftest`, `make packed`, and `make size` select the host platform, just
+like plain `make`. `make clean` removes the known Windows and Linux build
+outputs from `bin/` and `dist/`.
 
 ## Repository layout
 
 ```text
+Makefile            single Windows and Linux build entry point
 ibt.asm             Win64 entry point, state, resources, and shared definitions
 ibt_macros.inc      zero-overhead helpers for readable Win64 procedures
 ibt_ui.inc          window procedure and application behavior
@@ -194,7 +215,7 @@ ibt_lpk.inc         test orchestration and numerical routines
 bench_lib.inc       optimized matrix kernels
 res/                source and compiled graphical assets
 tools/              asset generation, alignment checks, size reports, and QA
-unix/               Linux/x86-64 X11 frontend, build, and size gate
+unix/               Linux/x86-64 X11 frontend sources
 ```
 
 Ordinary UI and control-flow routines use `PROC_FRAME name, stack, saved...` with `ENDPROC` or `ENDPROC_SAVED` so the Win64 frame contract remains visible. Simple bottom-tested loops use `DO` / `WHILE jcc`; numerical kernels remain direct instructions and labels.
