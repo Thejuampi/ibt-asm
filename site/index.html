@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="description" content="IntelBurnTest ASM is a tiny, native x86-64 CPU stability test for Windows and Linux. Stress, repeat, and compare numerical results.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="IntelBurnTest ASM — Stress. Repeat. Verify.">
+  <meta property="og:description" content="A tiny, native CPU stability test for Windows and Linux, with one shared assembly numerical core.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/Thejuampi/ibt-asm/main/.github/assets/ibt-windows-unix.webp">
+  <title>IntelBurnTest ASM — CPU stability, measured</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/ibt-windows-unix.webp" as="image" type="image/webp">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="IntelBurnTest ASM home">
+      <span class="brand-icon" aria-hidden="true">I<span>B</span>T</span>
+      <span>IntelBurnTest <small>ASM</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="#how-it-works">How it works</a>
+      <a href="#platforms">Windows + Linux</a>
+      <a href="https://github.com/Thejuampi/ibt-asm">Source <span aria-hidden="true">↗</span></a>
+    </nav>
+    <a class="header-cta" href="#download">Get v3.1.0 <span aria-hidden="true">↘</span></a>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" id="top" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span> OPEN SOURCE · WINDOWS &amp; LINUX · V3.1.0</p>
+        <h1 id="hero-title">Stress the CPU.<br><em>Check the math.</em></h1>
+        <p class="hero-lede">A compact, native stability test that repeats a demanding numerical workload and checks whether every completed run agrees.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#download">Download for your platform <span aria-hidden="true">↗</span></a>
+          <a class="button button-ghost" href="https://github.com/Thejuampi/ibt-asm">Explore the source <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="hero-note">No installer. One executable per platform. x86-64 only.</p>
+      </div>
+      <div class="hero-stage">
+        <div class="stage-heading"><span class="stage-pulse" aria-hidden="true"></span> SAME TEST. TWO NATIVE INTERFACES. <span>01 / 02</span></div>
+        <figure class="hero-screenshot">
+          <img src="assets/ibt-windows-unix.webp" width="1240" height="400" alt="IntelBurnTest graphical interfaces side by side: Windows on the left and Linux with X11 on the right">
+          <figcaption><span>WINDOWS x64</span><span>LINUX / X11 x64</span></figcaption>
+        </figure>
+        <div class="stage-footer"><span>620 × 400 client area on both platforms</span><span aria-hidden="true">● ● ●</span></div>
+      </div>
+    </section>
+
+    <div class="spec-rail" aria-label="Project essentials">
+      <div class="wrap spec-grid">
+        <div><span class="spec-number">02</span><span>native platforms</span></div>
+        <div><span class="spec-number">01</span><span>shared numerical core</span></div>
+        <div><span class="spec-number">03</span><span>execution paths: SSE2 / AVX / AVX2</span></div>
+        <div><span class="spec-number">00</span><span>installer required</span></div>
+      </div>
+    </div>
+
+    <section class="method wrap section" id="how-it-works" aria-labelledby="method-title">
+      <div class="section-lead">
+        <p class="eyebrow">01 / THE METHOD</p>
+        <h2 id="method-title">A pass means<br><em>the runs agree.</em></h2>
+        <p>GFLOPS tells you how fast the work ran. The stability signature tells you whether the completed runs produced the same numerical result.</p>
+        <a class="text-link" href="https://github.com/Thejuampi/ibt-asm#how-stability-is-determined">Read the full methodology <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="steps">
+        <article><span class="step-index">01 / CONFIGURE</span><h3>Set the pressure.</h3><p>Choose the memory load, run count, and threads that fit the check you want to perform.</p></article>
+        <article><span class="step-index">02 / EXECUTE</span><h3>Keep the cores busy.</h3><p>The assembly numerical workload runs in memory through the best supported SSE2, AVX, or AVX2 path.</p></article>
+        <article><span class="step-index">03 / COMPARE</span><h3>Verify every run.</h3><p>The first completed run establishes a reference signature. Every later run must match it to pass.</p></article>
+      </div>
+    </section>
+
+    <section class="monitor-band" aria-labelledby="monitor-title">
+      <div class="wrap monitor-grid">
+        <div class="monitor-copy">
+          <p class="eyebrow">02 / THE MONITOR</p>
+          <h2 id="monitor-title">The result,<br><em>front and center.</em></h2>
+          <p>Progress, elapsed time, throughput, and the residual signature stay visible in one compact window. A stopped run is never presented as a pass.</p>
+          <div class="monitor-status"><span class="status-light" aria-hidden="true"></span><span>PASS</span><span>All requested runs completed and matched</span></div>
+        </div>
+        <figure class="monitor-image">
+          <img src="assets/ibt-passed.webp" width="636" height="439" alt="IntelBurnTest showing three completed, matching runs and a passed verdict">
+          <figcaption>Actual application screen · Windows v3.0 monitor</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="platforms wrap section" id="platforms" aria-labelledby="platform-title">
+      <div class="section-headline">
+        <div><p class="eyebrow">03 / TWO BUILDS, ONE WORKLOAD</p><h2 id="platform-title">Native where it matters.<br><em>Consistent where it counts.</em></h2></div>
+        <p>Windows and Linux use the same in-process numerical assembly sources. Each frontend is native to its platform, with matching geometry and run-state presentation.</p>
+      </div>
+      <div class="platform-grid">
+        <article><span class="platform-icon" aria-hidden="true">▦</span><div><h3>Windows x64</h3><p>Windows 10 or 11. One unsigned executable; SmartScreen may prompt on first launch.</p></div><span class="platform-foot">27,136 bytes · v3.1.0</span></article>
+        <article><span class="platform-icon terminal-icon" aria-hidden="true">&gt;_</span><div><h3>Linux x64 / X11</h3><p>One native executable. Requires glibc, X11, and Xft on the host.</p></div><span class="platform-foot">21,060 bytes · v3.1.0</span></article>
+      </div>
+    </section>
+
+    <aside class="safety wrap" aria-label="Safety note"><span class="safety-icon" aria-hidden="true">!</span><p><strong>Expect heat.</strong> This test intentionally drives sustained CPU load and power draw. Monitor temperatures and stop if the system exceeds safe operating limits. A pass under this workload is not a guarantee of universal stability.</p></aside>
+
+    <section class="download-section wrap section" id="download" aria-labelledby="download-title">
+      <div class="download-heading"><p class="eyebrow">04 / GET STARTED</p><h2 id="download-title">Run the test.<br><em>Know the result.</em></h2><p>Official v3.1.0 binaries from GitHub Releases. No installer, account, or web benchmark.</p></div>
+      <div class="download-grid">
+        <a class="download-card" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe" download><span class="download-platform">WINDOWS x64</span><strong>IntelBurnTest.exe</strong><span>27,136 bytes · unsigned executable</span><span class="download-arrow" aria-hidden="true">↗</span></a>
+        <a class="download-card" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64" download><span class="download-platform">LINUX x64 / X11</span><strong>IntelBurnTest-linux-x64</strong><span>21,060 bytes · <code>chmod +x</code> before running</span><span class="download-arrow" aria-hidden="true">↗</span></a>
+      </div>
+      <p class="download-extra">Prefer to inspect first? <a href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0">Release notes and checksums ↗</a> <span aria-hidden="true">·</span> <a href="https://github.com/Thejuampi/ibt-asm#build-from-source">Build from source ↗</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="wrap footer-grid"><a class="brand" href="#top"><span class="brand-icon" aria-hidden="true">I<span>B</span>T</span><span>IntelBurnTest <small>ASM</small></span></a><p>Made by Thejuampi. Built to make instability visible.</p><div><a href="https://github.com/Thejuampi/ibt-asm">GitHub</a><a href="https://github.com/Thejuampi/ibt-asm/releases">Releases</a><a href="https://buymeacoffee.com/thejuampi">Buy me a coffee</a></div></div></footer>
+</body>
+</html>
