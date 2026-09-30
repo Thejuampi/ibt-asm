@@ -16,4 +16,5 @@ lpk_prof.txt
 .vscode/
 *.user
 *.suo
-
+/uefi/build/
+/uefi/out/

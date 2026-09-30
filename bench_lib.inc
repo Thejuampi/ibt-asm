@@ -1,5 +1,11 @@
 align 32
 lp_pack_a:
+%ifdef IBT_PORTABLE_ISA
+    cmp dword [lpIsaUse], 0
+    jne .avx
+    ret
+.avx:
+%endif
     push rbx
     push rsi
     push rdi
@@ -24,6 +30,11 @@ lp_pack_a:
     lea r8, [r8*8]
     xor r9d, r9d
 .st12:
+%ifdef IBT_PORTABLE_ISA
+    ; AVX's 8x4 kernel consumes eight-row panels, never twelve-row panels.
+    cmp dword [lpIsaUse], 2
+    jb .st8
+%endif
     lea eax, [r9+12]
     cmp eax, ebx
     ja .st8
@@ -69,6 +80,12 @@ lp_pack_a:
     add rdi, 64
     sub ecx, 1
     jnz .pk8
+%ifdef IBT_PORTABLE_ISA
+    cmp dword [lpIsaUse], 2
+    jae .out
+    add r9d, 8
+    jmp .st8
+%endif
 .out:
     pop r14
     pop r13
@@ -150,6 +167,12 @@ lp_pack_b:
 
 align 32
 lp_pack_b_all:
+%ifdef IBT_PORTABLE_ISA
+    cmp dword [lpIsaUse], 0
+    jne .avx
+    ret
+.avx:
+%endif
     push rbx
     push rdi
     mov rdi, [lpPackB]

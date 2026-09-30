@@ -1345,6 +1345,11 @@ lp_daxpy_neg:
 
 align 32
 lp_daxpy4_neg:
+%ifdef IBT_PORTABLE_ISA
+    ; The original four-column routine requires FMA even for small tails.
+    cmp dword [lpIsaUse], 2
+    jb uefi_daxpy4_sse2
+%endif
     test ecx, ecx
     jle .out
     vbroadcastsd ymm12, xmm0
@@ -2062,6 +2067,11 @@ lp_dgemm_neg:
     jb .col
     cmp dword [lpGN], 192
     ja .col
+%ifdef IBT_PORTABLE_ISA
+    ; The row-stealing job divides work in 12-row units (AVX2 packing).
+    cmp dword [lpIsaUse], 2
+    jb .col
+%endif
     mov rax, [lpPackB]
     test rax, rax
     jz .col
