@@ -4,7 +4,7 @@
 
 **An x86-64 CPU stability test written entirely in assembly and tuned for modern Intel processors.**
 
-[Download Windows v3.1.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64) · [Release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0) · [Build from source](#build-from-source)
+[Download USB v3.2.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe) · [Download Windows v3.1.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64) · [USB release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0) · [Website](https://thejuampi.github.io/ibt-asm/) · [Build from source](#build-from-source)
 
 </div>
 
@@ -19,9 +19,9 @@ The numerical workload, matrix kernels, thread workers, test orchestration, runt
 | **Purpose** | Detect CPU instability under sustained numerical load |
 | **Primary target** | Modern Intel x86-64 processors |
 | **Execution paths** | SSE2, AVX, and AVX2 selected automatically |
-| **Platform** | Windows 10 or 11, x64; Linux x86-64 with X11 |
-| **Runtime dependencies** | Windows system libraries, or X11/Xft and glibc on Linux |
-| **Persistent output** | Optional `results.log` |
+| **Platform** | Windows 10 or 11, x64; Linux x86-64 with X11; bootable x64 UEFI |
+| **Runtime dependencies** | Windows system libraries; X11/Xft and glibc on Linux; firmware services in the OS-free UEFI port |
+| **Persistent output** | Optional `results.log` on desktop; USB results stay in memory |
 
 Windows (left) and Linux/X11 (right) use the same client geometry and visual
 assets. ISA and available-memory values are detected independently on each host.
@@ -114,7 +114,7 @@ These are examples, not universal pass criteria. Increase duration and memory pr
 
 ## Technical design
 
-- Program code written entirely in x86-64 NASM assembly.
+- CPU test code written in x86-64 NASM assembly; the separate Windows USB preparation utility uses C# and Windows storage APIs.
 - Numerical workload and optimized matrix kernels run in-process.
 - SSE2, AVX, and AVX2 capabilities are detected at startup; the best supported path is selected automatically.
 - Benchmark data remains in memory during execution.
@@ -183,6 +183,29 @@ make
 the packed Unix distributable. See [`unix/README.md`](unix/README.md) for the
 Unix-specific details and UI smoke-test command.
 
+### Bootable UEFI port
+
+The standalone port boots from a FAT32 USB drive without loading an operating
+system. It automatically selects SSE2, AVX, or AVX2+FMA and supports parallel
+numerical execution through the firmware's multiprocessor services.
+
+Build with Python, NASM, and LLVM's `lld-link`:
+
+```console
+python uefi/build.py
+```
+
+On Windows, download **IntelBurnTest-USB-Setup.exe** from the
+[v3.2.0 release](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0), choose
+your USB, and confirm installation. FAT32 USBs keep their existing files;
+formatting requires a separate erase confirmation. Build the installer with
+`python uefi/build.py --installer`.
+
+Manual alternatives: copy `ibt-uefi-usb.zip` to a FAT32 USB partition, or write
+`ibt-uefi.img` as a raw image. Boot the USB's UEFI entry.
+The EFI binary is unsigned. See [`uefi/README.md`](uefi/README.md)
+for boot instructions, ISA selection, firmware constraints, and emulator checks.
+
 ## Repository layout
 
 ```text
@@ -195,6 +218,7 @@ bench_lib.inc       optimized matrix kernels
 res/                source and compiled graphical assets
 tools/              asset generation, alignment checks, size reports, and QA
 unix/               Linux/x86-64 X11 frontend, build, and size gate
+uefi/               OS-free x64 UEFI frontend, USB installer, and boot tests
 ```
 
 Ordinary UI and control-flow routines use `PROC_FRAME name, stack, saved...` with `ENDPROC` or `ENDPROC_SAVED` so the Win64 frame contract remains visible. Simple bottom-tested loops use `DO` / `WHILE jcc`; numerical kernels remain direct instructions and labels.
@@ -219,7 +243,7 @@ Maximum reserves nearly all currently available memory and drives the selected C
 
 ## Credits
 
-IntelBurnTest v3.1.0 was created by **Thejuampi**. IntelBurnTest 2.54 was created by **AgentGOD**.
+IntelBurnTest v3.2.0 was created by **Thejuampi**. IntelBurnTest 2.54 was created by **AgentGOD**.
 
 [Buy Thejuampi a coffee](https://buymeacoffee.com/thejuampi)
 
