@@ -501,3 +501,33 @@ footer > div a:hover, footer > div a:focus-visible { color: var(--text); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
+
+/* Bootable USB edition: preserve the original visual design. */
+.usb-setup { display: grid; grid-template-columns: .68fr 1.32fr; gap: clamp(3rem,8vw,8rem); padding-bottom: 0; }
+.usb-intro, .download-description { color: var(--muted); margin: 1.5rem 0 0; max-width: 33rem; }
+.usb-steps { border-top: 1px solid var(--line); }
+.usb-steps article { padding: 1.7rem 0; border-bottom: 1px solid var(--line); }
+.usb-steps .card-index { margin: 0 0 .6rem; color: var(--orange); }
+.usb-steps p { color: var(--muted); margin: .6rem 0 0; }
+.usb-note { font-size: .86rem; padding-top: .8rem; }
+.usb-note strong, .usb-steps strong { color: var(--text); }
+.manual-downloads { padding: .9rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.manual-downloads summary { cursor: pointer; color: var(--text); font-weight: 600; }
+.manual-downloads summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
+.release-limit { font-size: .8rem; }
+.desktop-downloads { width: min(calc(100% - 2rem),var(--max)); margin: -2rem auto 5rem; display: grid; grid-template-columns: 1fr auto auto; gap: 1.4rem; align-items: center; padding-top: 2rem; border-top: 1px solid var(--line); }
+.desktop-downloads p { color: var(--muted); font-size: .88rem; margin: .6rem 0 0; }
+.desktop-downloads .eyebrow { color: var(--orange); margin: 0 0 .65rem; }
+.desktop-downloads .button { flex-direction: column; gap: .2rem; padding: 1rem 1.5rem; }
+.desktop-downloads small { color: var(--muted); font-weight: 400; }
+.desktop-note { grid-column: 1 / -1; }
+.download-meta { min-width: 0; }
+@media (max-width: 1020px) { .usb-setup { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .desktop-downloads { grid-template-columns: 1fr; margin-top: -1rem; } .desktop-note { grid-column: 1; } }
+
+.console-capture { aspect-ratio: 8 / 5; overflow: hidden; border-radius: .45rem; }
+.console-capture img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.7); transform-origin: center; }
+.download-panel { grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: clamp(2rem,5vw,4rem); }
+.download-panel h2 { font-size: clamp(2.8rem,4vw,4.5rem); }
+.download-meta { width: 100%; }
+@media (max-width: 1020px) { .download-panel { grid-template-columns: 1fr; } }
