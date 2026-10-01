@@ -502,32 +502,51 @@ footer > div a:hover, footer > div a:focus-visible { color: var(--text); }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
 
-/* Bootable USB edition: preserve the original visual design. */
-.usb-setup { display: grid; grid-template-columns: .68fr 1.32fr; gap: clamp(3rem,8vw,8rem); padding-bottom: 0; }
-.usb-intro, .download-description { color: var(--muted); margin: 1.5rem 0 0; max-width: 33rem; }
+
+/* All three editions share the same visual and download hierarchy. */
+.hero-editions { display: block; min-height: 0; padding: 3rem 0 3.5rem; }
+.hero-intro { display: grid; grid-template-columns: 1.15fr .85fr; gap: 3rem; align-items: center; }
+.hero-intro h1 { font-size: clamp(3rem,5vw,4.5rem); }
+.hero-intro .kicker { margin-bottom: 1rem; color: var(--orange-2); }
+.hero-description .lede { margin: 0; font-size: 1.08rem; }
+.edition-shortcuts { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.3rem; font-size: .875rem; }
+.edition-shortcuts a { border: 1px solid var(--line); padding: .35rem .75rem; border-radius: .45rem; color: var(--text); }
+.edition-shortcuts a:hover { border-color: var(--orange); }
+.edition-grid, .download-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1.2rem; }
+.edition-grid { margin-top: 2.2rem; scroll-margin-top: 1rem; }
+.edition-card, .download-choice { min-width: 0; display: flex; flex-direction: column; padding: 1.2rem; border: 1px solid #353f4c; border-radius: 1rem; background: linear-gradient(145deg,#171c23,#0c0f13); }
+.edition-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: 1rem; }
+.edition-heading h2, .edition-heading h3 { margin: 0; font-size: 1.3rem; line-height: 1.3; letter-spacing: -.025em; }
+.edition-version { flex-shrink: 0; font: .875rem ui-monospace,"Cascadia Code",monospace; color: var(--muted); }
+.edition-shot { margin: 0; aspect-ratio: 31/20; overflow: hidden; border: 1px solid #28313c; border-radius: .45rem; background: #090b0e; }
+.edition-shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.edition-shot-console img { transform: scale(1.7); transform-origin: center; }
+.edition-card > p { min-height: 4.7rem; margin: 1rem 0 .75rem; color: #b8c1ce; font-size: 1rem; line-height: 1.55; }
+.edition-requirement { display: block; margin-bottom: 1rem; color: var(--muted); font-size: .875rem; }
+.edition-download { min-width: 0; width: 100%; min-height: 52px; padding: .75rem .6rem; align-items: center; text-align: center; font-size: .96rem; }
+.edition-card .edition-download { margin-top: auto; }
+.edition-more { width: fit-content; margin-top: .8rem; color: var(--muted); font-size: .875rem; text-decoration: underline; text-underline-offset: 3px; }
+.edition-more:hover { color: var(--text); }
+.edition-card, .download-choice { scroll-margin-top: 1.5rem; }
+.usb-setup { display: grid; grid-template-columns: .68fr 1.32fr; gap: clamp(3rem,8vw,8rem); padding-top: 0; }
+.usb-intro { color: var(--muted); margin: 1.5rem 0 0; max-width: 33rem; }
 .usb-steps { border-top: 1px solid var(--line); }
 .usb-steps article { padding: 1.7rem 0; border-bottom: 1px solid var(--line); }
 .usb-steps .card-index { margin: 0 0 .6rem; color: var(--orange); }
 .usb-steps p { color: var(--muted); margin: .6rem 0 0; }
-.usb-note { font-size: .86rem; padding-top: .8rem; }
-.usb-note strong, .usb-steps strong { color: var(--text); }
-.manual-downloads { padding: .9rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.manual-downloads summary { cursor: pointer; color: var(--text); font-weight: 600; }
+.usb-note { font-size: .9rem; padding-top: .8rem; }
+.usb-steps strong { color: var(--text); }
+.downloads-section { width: min(calc(100% - 2rem),var(--max)); margin: 6rem auto; }
+.downloads-heading { margin-bottom: 2rem; }
+.downloads-heading h2 { font-size: clamp(2.8rem,4vw,4.5rem); }
+.downloads-heading > p:not(.eyebrow) { color: var(--muted); margin: 1rem 0 0; }
+.download-choice > p { margin: 0 0 1rem; min-height: 4.7rem; color: #b8c1ce; font-size: 1rem; line-height: 1.55; }
+.download-choice .download-requirements { min-height: 0; margin: 1rem 0 0; color: var(--muted); font-size: .875rem; }
+.download-choice code { overflow-wrap: anywhere; }
+.manual-downloads { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .875rem; }
+.manual-downloads summary { cursor: pointer; color: var(--text); }
 .manual-downloads summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
-.release-limit { font-size: .8rem; }
-.desktop-downloads { width: min(calc(100% - 2rem),var(--max)); margin: -2rem auto 5rem; display: grid; grid-template-columns: 1fr auto auto; gap: 1.4rem; align-items: center; padding-top: 2rem; border-top: 1px solid var(--line); }
-.desktop-downloads p { color: var(--muted); font-size: .88rem; margin: .6rem 0 0; }
-.desktop-downloads .eyebrow { color: var(--orange); margin: 0 0 .65rem; }
-.desktop-downloads .button { flex-direction: column; gap: .2rem; padding: 1rem 1.5rem; }
-.desktop-downloads small { color: var(--muted); font-weight: 400; }
-.desktop-note { grid-column: 1 / -1; }
-.download-meta { min-width: 0; }
-@media (max-width: 1020px) { .usb-setup { grid-template-columns: 1fr; } }
-@media (max-width: 640px) { .desktop-downloads { grid-template-columns: 1fr; margin-top: -1rem; } .desktop-note { grid-column: 1; } }
-
-.console-capture { aspect-ratio: 8 / 5; overflow: hidden; border-radius: .45rem; }
-.console-capture img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.7); transform-origin: center; }
-.download-panel { grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: clamp(2rem,5vw,4rem); }
-.download-panel h2 { font-size: clamp(2.8rem,4vw,4.5rem); }
-.download-meta { width: 100%; }
-@media (max-width: 1020px) { .download-panel { grid-template-columns: 1fr; } }
+.manual-downloads p { color: var(--muted); margin: .8rem 0 0; }
+@media (max-width: 960px) { .hero-intro { grid-template-columns: 1fr; gap: 1.5rem; } .usb-setup { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .edition-grid, .download-grid { grid-template-columns: 1fr; } .edition-card > p, .download-choice > p { min-height: 0; } }
+@media (max-width: 640px) { .hero-editions { padding: 2.4rem 0 3rem; } .hero-intro h1 { font-size: clamp(2.8rem,12vw,3.4rem); } .hero-description .lede { font-size: 1rem; } .edition-heading h2 { font-size: 1.3rem; } .edition-grid { margin-top: 1.5rem; } .downloads-section { margin: 5rem auto; } }

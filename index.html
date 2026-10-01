@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#090b0e">
-  <meta name="description" content="Test your CPU from a bootable USB with IntelBurnTest 3.2. Download the USB installer, choose your drive, and start testing. Windows and Linux editions also available.">
+  <meta name="description" content="Test your CPU overclock with IntelBurnTest for Windows, Linux, or bootable USB. Choose your edition, download it, and check your settings under load.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="IntelBurnTest — Get more from the PC you own.">
   <meta property="og:description" content="Chase more FPS. Push for a higher clock. Test your CPU overclock with IntelBurnTest as you squeeze more out of your hardware.">
-  <meta property="og:image" content="https://thejuampi.github.io/ibt-asm/assets/ibt-uefi-passed.webp">
-  <meta property="og:image:alt" content="IntelBurnTest showing three completed runs with matching results">
+  <meta property="og:image" content="https://thejuampi.github.io/ibt-asm/assets/ibt-windows-passed.webp">
+  <meta property="og:image:alt" content="IntelBurnTest showing a passed CPU stability test">
   <title>IntelBurnTest — Put Your Overclock to the Test</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ff6b22' d='M18 2c1 7-5 8-2 14 1-4 5-5 6-9 5 6 7 12 4 18-4 8-16 7-20 1C1 18 8 11 13 7c0 4 0 7 2 8-2-7 3-8 3-13Z'/%3E%3Cpath fill='%23ffd166' d='M16 15c0 4-4 5-2 10 1 2 5 3 7 0 2-4-1-7-2-9 0 3-2 4-3 5 1-2 0-4 0-6Z'/%3E%3C/svg%3E">
-  <link rel="preload" href="assets/ibt-uefi-passed.webp" as="image" type="image/webp">
-  <link rel="stylesheet" href="styles.css?v=3.2.0">
+  <link rel="preload" href="assets/ibt-windows-passed.webp" as="image" type="image/webp">
+  <link rel="stylesheet" href="styles.css?v=three-editions-20260930">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -23,36 +23,52 @@
       <span>IntelBurnTest</span>
     </a>
     <nav aria-label="Primary navigation">
-      <a href="#usb-setup">Prepare your USB</a>
-      <a href="#interface">See it in action</a>
+      <a href="#editions">Choose your edition</a>
+      <a href="#engineering">Test your overclock</a>
       <a href="https://github.com/Thejuampi/ibt-asm" rel="noreferrer">GitHub</a>
     </nav>
-    <a class="header-download" href="#download">Download v3.2</a>
+    <a class="header-download" href="#download">Downloads</a>
   </header>
 
   <main id="main">
-    <section class="hero" id="top">
-      <div class="hero-copy">
-        <p class="kicker"><span>NEW · v3.2</span> Bootable USB edition</p>
-        <h1>Get more from<br><em>the PC you own.</em></h1>
-        <p class="lede">Push for a higher clock. Check your next undervolt. Now boot IntelBurnTest directly from a USB and test your CPU before loading Windows or Linux.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe">
-            <span>Download USB installer</span>
-            <small>For Windows · v3.2.0 · 84 KiB</small>
-          </a>
-          <a class="button button-secondary" href="#usb-setup">How to boot from USB</a>
+    <section class="hero hero-editions" id="top">
+      <div class="hero-intro">
+        <div>
+          <p class="kicker">CPU stability testing</p>
+          <h1>Get more from<br><em>the PC you own.</em></h1>
         </div>
-        <p class="platform-link"><a href="#desktop-downloads">Prefer a desktop app? Windows &amp; Linux</a></p>
+        <div class="hero-description">
+          <p class="lede">Push for a higher clock. Check your next undervolt. Test your CPU in Windows, in Linux, or directly from a bootable USB.</p>
+          <nav class="edition-shortcuts" aria-label="Choose an edition">
+            <a href="#edition-windows">Windows</a><a href="#edition-linux">Linux</a><a href="#edition-usb">Bootable USB</a>
+          </nav>
+        </div>
       </div>
-
-      <div class="hero-visual">
-        <div class="visual-glow" aria-hidden="true"></div>
-        <figure class="app-frame">
-          <div class="frame-bar" aria-hidden="true"><span></span><span></span><span></span><b>USB EDITION / 3.2</b></div>
-          <div class="console-capture"><img src="assets/ibt-uefi-passed.webp" width="1280" height="800" alt="Intel Burn Test 3.2 bootable USB interface after a passed test, with Size, Threads, Runs, Rerun, and Change settings" decoding="async"></div>
-          <figcaption><span>Test complete</span><strong>Passed</strong></figcaption>
-        </figure>
+      <div class="edition-grid" id="editions" aria-label="IntelBurnTest editions">
+        <article class="edition-card" id="edition-windows" data-edition="windows">
+          <div class="edition-heading"><h2>Windows</h2><span class="edition-version">v3.1.0</span></div>
+          <figure class="edition-shot"><img src="assets/ibt-windows-passed.webp" width="620" height="400" alt="IntelBurnTest Windows app showing a passed test in the Stability Monitor" decoding="async"></figure>
+          <p>Test from your Windows desktop with a graphical interface and optional result logging.</p>
+          <span class="edition-requirement">Windows 10 / 11 · x64 · 27 KB</span>
+          <a class="button button-primary edition-download" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe">Download for Windows</a>
+          <a class="edition-more" href="#download-windows">Windows quick start</a>
+        </article>
+        <article class="edition-card" id="edition-linux" data-edition="linux">
+          <div class="edition-heading"><h2>Linux</h2><span class="edition-version">v3.1.0</span></div>
+          <figure class="edition-shot"><img src="assets/ibt-linux-passed.webp" width="620" height="400" alt="IntelBurnTest Linux app showing completed runs with matching results" decoding="async"></figure>
+          <p>Test from your Linux desktop with the same controls, results view, and optional logging.</p>
+          <span class="edition-requirement">Linux · x64 · X11 · 21 KB</span>
+          <a class="button button-primary edition-download" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64">Download for Linux</a>
+          <a class="edition-more" href="#download-linux">Linux quick start</a>
+        </article>
+        <article class="edition-card" id="edition-usb" data-edition="usb">
+          <div class="edition-heading"><h2>Bootable USB</h2><span class="edition-version">v3.2.0</span></div>
+          <figure class="edition-shot edition-shot-console"><img src="assets/ibt-uefi-passed.webp" width="1280" height="800" alt="Intel Burn Test bootable USB edition showing a passed test and Rerun and Change settings actions" decoding="async"></figure>
+          <p>Boot from a USB and test your CPU before loading an operating system.</p>
+          <span class="edition-requirement">x64 UEFI · Windows setup · 84 KiB</span>
+          <a class="button button-primary edition-download" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe">Download USB installer</a>
+          <a class="edition-more" href="#usb-setup">How to boot from USB</a>
+        </article>
       </div>
     </section>
 
@@ -60,21 +76,7 @@
       <div><strong>Push it</strong><span>put your CPU under heavy load</span></div>
       <div><strong>Check it</strong><span>see if your settings pass</span></div>
       <div><strong>Your call</strong><span>choose how hard to test</span></div>
-      <div><strong>USB ready</strong><span>choose your drive, confirm, restart</span></div>
-    </section>
-
-    <section class="usb-setup section" id="usb-setup">
-      <div class="section-heading">
-        <p class="eyebrow">From download to first test</p>
-        <h2>Your USB.<br>Three steps.</h2>
-        <p class="usb-intro">One download includes everything you need. Prepare the drive on Windows, then use it on a PC with 64-bit UEFI.</p>
-      </div>
-      <div class="usb-steps">
-        <article><span class="card-index">01</span><h3>Choose your USB</h3><p>Open the installer and select your drive. Its name, capacity, and drive letters help you pick the right one.</p></article>
-        <article><span class="card-index">02</span><h3>Confirm and prepare</h3><p>FAT32 drives keep your files. If formatting is needed, back up your files first. Setup identifies the drive and requires you to type <strong>ERASE</strong> before deleting anything.</p></article>
-        <article><span class="card-index">03</span><h3>Restart and test</h3><p>Open your PC’s boot menu and choose the USB’s UEFI entry. Set Size, Threads, and Runs, then press Enter.</p></article>
-        <p class="usb-note">This release is unsigned: disable Secure Boot to start the USB edition. The installer excludes internal and system disks. An existing USB boot file is backed up before replacement.</p>
-      </div>
+      <div><strong>3 editions</strong><span>Windows, Linux, or bootable USB</span></div>
     </section>
 
     <section class="engineering section" id="engineering">
@@ -117,21 +119,21 @@
       <div class="interface-copy" id="results">
         <p class="eyebrow">See how your settings hold up</p>
         <h2>Less guesswork.<br>More tuning.</h2>
-        <p>Choose Size, Threads, and Runs. Follow each completed run in the results table, then rerun the same test or change your settings. A pass means the calculations stayed consistent during this test.</p>
+        <p>Choose memory use, CPU threads, and the number of runs. Follow the progress, check the result, and run the test again after your next adjustment. A pass means the calculations stayed consistent during this test.</p>
         <ul class="feature-list">
           <li><span>01</span> Follow the test as it runs</li>
           <li><span>02</span> See a clear pass or failure</li>
-          <li><span>03</span> Rerun or change settings after the result</li>
+          <li><span>03</span> Test again after each adjustment</li>
         </ul>
       </div>
       <div class="screenshot-stack">
         <figure class="screenshot-card screenshot-idle">
-          <div class="console-capture"><img src="assets/ibt-uefi-ready.webp" width="1280" height="800" alt="IntelBurnTest ready to start" decoding="async"></div>
-          <figcaption><span>Idle</span><b>Ready</b></figcaption>
+          <img src="assets/ibt-windows-passed.webp" width="620" height="400" alt="Windows graphical Stability Monitor after a completed test" loading="lazy" decoding="async">
+          <figcaption><span>Windows</span><b>Passed</b></figcaption>
         </figure>
         <figure class="screenshot-card screenshot-running">
-          <div class="console-capture"><img src="assets/ibt-uefi-running.webp" width="1280" height="800" alt="Intel Burn Test 3.2 USB edition showing live progress and completed runs" decoding="async"></div>
-          <figcaption><span>Under load</span><b>Running</b></figcaption>
+          <img src="assets/ibt-linux-passed.webp" width="620" height="400" alt="Linux graphical Stability Monitor after a completed test" loading="lazy" decoding="async">
+          <figcaption><span>Linux</span><b>Passed</b></figcaption>
         </figure>
       </div>
     </section>
@@ -140,7 +142,7 @@
       <div class="validation-copy">
         <p class="eyebrow">Keep it in your tuning toolkit</p>
         <h2>Small download.<br>Big workout.</h2>
-        <p>Getting another year out of your current rig? Chasing the limit of a build you've saved up for? Keep IBT handy for the next adjustment. Download the <strong>84 KiB USB installer</strong> and keep a bootable test drive handy. The Windows and Linux desktop apps are still available below.</p>
+        <p>Getting another year out of your current rig? Chasing the limit of a build you've saved up for? Keep IBT handy for the next adjustment. Choose <strong>Windows, Linux, or bootable USB</strong>. The desktop apps run without installation; the USB installer prepares a drive you can boot for your next test.</p>
       </div>
       <div class="validation-ledger" role="list" aria-label="Download and compatibility">
         <div role="listitem"><span>Windows</span><strong>10 / 11 · 64-bit</strong></div>
@@ -148,6 +150,20 @@
         <div role="listitem"><span>CPU focus</span><strong>Modern Intel processors</strong></div>
         <div role="listitem"><span>Bootable edition</span><strong>x64 UEFI · v3.2.0</strong></div>
         <div role="listitem"><span>Automatic CPU mode</span><strong>SSE2 / AVX / AVX2</strong></div>
+      </div>
+    </section>
+
+    <section class="usb-setup section" id="usb-setup">
+      <div class="section-heading">
+        <p class="eyebrow">From download to first test</p>
+        <h2>Your USB.<br>Three steps.</h2>
+        <p class="usb-intro">One download includes everything you need. Prepare the drive on Windows, then use it on a PC with 64-bit UEFI.</p>
+      </div>
+      <div class="usb-steps">
+        <article><span class="card-index">01</span><h3>Choose your USB</h3><p>Open the installer and select your drive. Its name, capacity, and drive letters help you pick the right one.</p></article>
+        <article><span class="card-index">02</span><h3>Confirm and prepare</h3><p>FAT32 drives keep your files. If formatting is needed, back up your files first. Setup identifies the drive and requires you to type <strong>ERASE</strong> before deleting anything.</p></article>
+        <article><span class="card-index">03</span><h3>Restart and test</h3><p>Open your PC’s boot menu and choose the USB’s UEFI entry. Set Size, Threads, and Runs, then press Enter.</p></article>
+        <p class="usb-note">This release is unsigned: disable Secure Boot to start the USB edition. The installer excludes internal and system disks. An existing USB boot file is backed up before replacement.</p>
       </div>
     </section>
 
@@ -159,32 +175,37 @@
       </div>
     </aside>
 
-    <section class="download-panel" id="download">
-      <div>
-        <p class="eyebrow">IntelBurnTest 3.2 · Bootable USB</p>
-        <h2>Take the test<br>with you.</h2>
-        <p class="download-description">A bootable CPU test for your next build, tune, or troubleshooting session.</p>
+    <section class="downloads-section" id="download">
+      <div class="downloads-heading"><p class="eyebrow">Windows · Linux · Bootable USB</p><h2>Choose your edition.</h2><p>Three ways to put your settings to the test.</p></div>
+      <div class="download-grid" id="desktop-downloads">
+        <article class="download-choice" id="download-windows">
+          <div class="edition-heading"><h3>Windows</h3><span class="edition-version">v3.1.0</span></div>
+          <p>Download and open the app. Choose your settings, then click Start.</p>
+          <a class="button button-primary edition-download" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe">Download for Windows</a>
+          <p class="download-requirements">Windows 10 / 11 · x64 · 27 KB. Unsigned executable; Windows may show a warning.</p>
+          <a class="edition-more" href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0">Release notes and checksums</a>
+        </article>
+        <article class="download-choice" id="download-linux">
+          <div class="edition-heading"><h3>Linux</h3><span class="edition-version">v3.1.0</span></div>
+          <p>Make the download executable, then open it and choose your settings.</p>
+          <a class="button button-primary edition-download" id="linux-download" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64">Download for Linux</a>
+          <p class="download-requirements">Linux x64 with X11, Xft, and glibc. Run <code>chmod +x IntelBurnTest-linux-x64</code> after downloading.</p>
+          <a class="edition-more" href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0">Release notes and checksums</a>
+        </article>
+        <article class="download-choice" id="download-usb">
+          <div class="edition-heading"><h3>Bootable USB</h3><span class="edition-version">v3.2.0</span></div>
+          <p>Choose your USB in the installer, confirm preparation, and restart.</p>
+          <a class="button button-primary edition-download" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe">Download USB installer</a>
+          <p class="download-requirements">Windows 10 / 11 with .NET Framework 4.8 for setup. x64 UEFI and Secure Boot disabled to boot. 84 KiB.</p>
+          <a class="edition-more" href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0">Release notes and checksums</a>
+          <details class="manual-downloads">
+            <summary>USB compatibility and manual setup</summary>
+            <p>Verified in QEMU/OVMF; physical USB installation and firmware compatibility still need hardware validation. The installer is unsigned; Windows may show a warning. Legacy BIOS is unsupported.</p>
+            <p><a class="release-link" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/ibt-uefi-usb.zip">Download the USB ZIP</a> and extract it into an existing FAT32 USB. Back up an existing EFI/BOOT/BOOTX64.EFI before replacing it.</p>
+            <p><a class="release-link" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/ibt-uefi.img">Download the raw image</a> for your imaging tool. Writing this image erases its destination and creates a 64 MiB layout.</p>
+          </details>
+        </article>
       </div>
-      <div class="download-meta">
-        <a class="button button-primary button-large" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe">
-          <span>Download USB installer</span><small>Windows x64 · v3.2.0 · 84 KiB</small>
-        </a>
-        <p>One file. Choose your USB and confirm. Requires Windows 10/11 with .NET Framework 4.8. Windows may show a warning for this unsigned installer.</p>
-        <details class="manual-downloads">
-          <summary>Manual USB setup and other platforms</summary>
-          <p><a class="release-link" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/ibt-uefi-usb.zip">Download the USB ZIP</a> and extract it into an existing FAT32 USB. Back up an existing EFI/BOOT/BOOTX64.EFI before replacing it.</p>
-          <p><a class="release-link" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/ibt-uefi.img">Download the raw image</a> for your USB imaging tool. Writing this image erases the selected drive and creates a 64 MiB layout.</p>
-        </details>
-        <p class="release-limit">Verified in QEMU/OVMF; physical USB installation and firmware compatibility still need hardware validation. x64 UEFI only; legacy BIOS is not supported.</p>
-        <p><a class="release-link" href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0">Release notes and checksums</a></p>
-      </div>
-    </section>
-
-    <section class="desktop-downloads" id="desktop-downloads" aria-label="Desktop downloads">
-      <div><p class="eyebrow">Desktop editions · v3.1.0</p><h3>Test from your desktop.</h3><p>Run IBT in Windows or Linux, with optional test logging.</p></div>
-      <a class="button button-secondary" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest.exe"><span>Windows x64</span><small>v3.1.0 · 27 KB</small></a>
-      <a class="button button-secondary" id="linux-download" href="https://github.com/Thejuampi/ibt-asm/releases/download/v3.1.0/IntelBurnTest-linux-x64"><span>Linux x64</span><small>v3.1.0 · 21 KB</small></a>
-      <p class="desktop-note">Linux requires glibc, X11, and Xft; run <code>chmod +x IntelBurnTest-linux-x64</code> after downloading. <a class="release-link" href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.1.0">Desktop release notes</a></p>
     </section>
   </main>
 
@@ -193,7 +214,7 @@
     <p>Created by <strong>Thejuampi</strong>.</p>
     <div>
       <a href="https://github.com/Thejuampi/ibt-asm">GitHub</a>
-      <a href="https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0">Release</a>
+      <a href="https://github.com/Thejuampi/ibt-asm/releases">Releases</a>
       <a href="https://buymeacoffee.com/thejuampi">Buy me a coffee</a>
     </div>
   </footer>
