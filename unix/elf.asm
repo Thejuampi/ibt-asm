@@ -376,6 +376,7 @@ elf_libc_name: db 'libc.so.6', 0
 elf_pthread_name: db 'libpthread.so.0', 0
 elf_libdl_name: db 'libdl.so.2', 0
 elf_build_test_option: db '--build-test', 0
+elf_prepare_test_option: db '--prepare-test', 0
 elf_verify_option: db '--verify-kernels', 0
 elf_gui_test_option: db '--gui-test', 0
 elf_kernel_reference: db '../reference/numerical/linux.bin', 0

@@ -39,18 +39,24 @@ check-gui: $(TARGET)
 
 check-verifier: $(TARGET)
 	$(NASM) -f bin -I ../ -DKERNEL_TEST_ELF=1 -o "$(COMPARE_TEST)" ../native/kernel_compare_test.asm
+	./$(TARGET) --prepare-test "$(COMPARE_TEST)"
 	$(LOADER) ./$(COMPARE_TEST)
 	./$(TARGET) --verify-kernels
 	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -I ../ -DKERNEL_EQUIVALENT_ELF=1 -DKERNEL_EQUIVALENT_MOV=1 -o IntelBurnTest.equivalent-mov ../native/kernel_equivalence_test.asm
+	./$(TARGET) --prepare-test IntelBurnTest.equivalent-mov
 	$(LOADER) ./IntelBurnTest.equivalent-mov --verify-kernels
 	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -I ../ -DKERNEL_EQUIVALENT_ELF=1 -DKERNEL_EQUIVALENT_NOP=1 -o IntelBurnTest.equivalent-nop ../native/kernel_equivalence_test.asm
+	./$(TARGET) --prepare-test IntelBurnTest.equivalent-nop
 	$(LOADER) ./IntelBurnTest.equivalent-nop --verify-kernels
 	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -I ../ -DKERNEL_EQUIVALENT_ELF=1 -DKERNEL_EQUIVALENT_BRANCH=1 -o IntelBurnTest.equivalent-branch ../native/kernel_equivalence_test.asm
+	./$(TARGET) --prepare-test IntelBurnTest.equivalent-branch
 	$(LOADER) ./IntelBurnTest.equivalent-branch --verify-kernels
 	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -I ../ -DKERNEL_EQUIVALENT_ELF=1 -DKERNEL_EQUIVALENT_ADDRESS=1 -o IntelBurnTest.equivalent-address ../native/kernel_equivalence_test.asm
+	./$(TARGET) --prepare-test IntelBurnTest.equivalent-address
 	$(LOADER) ./IntelBurnTest.equivalent-address --verify-kernels
 	@echo "Verifier accepted the four equivalent encodings and address variants"
 	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -I ../ -DKERNEL_MUTATION_ELF=1 -o "$(MUTATION)" ../native/kernel_verification_mutation.asm
+	./$(TARGET) --prepare-test "$(MUTATION)"
 	@$(LOADER) ./$(MUTATION) --verify-kernels; status=$$?; if [ $$status -eq 1 ]; then echo "Verifier rejected the modified numerical routines"; else echo "ERROR: verifier did not reject the mutation"; exit 1; fi
 
 clean:

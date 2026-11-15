@@ -8,10 +8,26 @@ _start:
     lea rdi, [elf_verify_option]
     call streq
     test eax, eax
-    jz .check_gui_option
+    jz .check_prepare_option
     call elf_verify_kernels
     test eax, eax
     jz .exit1
+    xor edi, edi
+    jmp .exit
+.check_prepare_option:
+    mov rsi, [r12+16]
+    lea rdi, [elf_prepare_test_option]
+    call streq
+    test eax, eax
+    jz .check_gui_option
+    cmp qword [r12], 3
+    jne .exit1
+    mov eax, 90                    ; chmod the NASM-created test executable
+    mov rdi, [r12+24]
+    mov esi, 0o755
+    syscall
+    test eax, eax
+    js .exit1
     xor edi, edi
     jmp .exit
 .check_gui_option:
