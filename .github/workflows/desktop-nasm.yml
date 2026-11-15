@@ -1,0 +1,61 @@
+name: Desktop NASM validation
+
+on:
+  push:
+    branches: [codex/desktop-release-validation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: Fetch the exact source revision
+        run: |
+          git clone --no-checkout https://github.com/%GITHUB_REPOSITORY%.git source || exit /b 1
+          cd source
+          git checkout --detach %GITHUB_SHA% || exit /b 1
+      - name: Install NASM and make
+        run: |
+          C:\msys64\usr\bin\pacman.exe --noconfirm -Sy --needed make nasm || exit /b 1
+      - name: Build and test
+        run: |
+          set "PATH=C:\msys64\usr\bin;%PATH%"
+          cd source
+          nasm -v || exit /b 1
+          make || exit /b 1
+          make check || exit /b 1
+          make check-verifier || exit /b 1
+          make check-gui || exit /b 1
+
+  linux:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Fetch the exact source revision
+        run: |
+          git clone --no-checkout "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          git checkout --detach "$GITHUB_SHA"
+      - name: Install NASM, make and X11 runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nasm make libx11-6 libxft2 xvfb
+      - name: Build and test
+        run: |
+          cd source
+          Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
+          export DISPLAY=:99
+          nasm -v
+          make
+          make check
+          make check-verifier
+          make check-gui
+
