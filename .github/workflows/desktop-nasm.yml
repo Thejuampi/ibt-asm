@@ -2,7 +2,8 @@ name: Desktop NASM validation
 
 on:
   push:
-    branches: [codex/desktop-release-validation]
+    branches: [main, codex/desktop-release-validation]
+  pull_request:
   workflow_dispatch:
     inputs:
       release_tag:
@@ -24,6 +25,7 @@ jobs:
         run: |
           git clone --no-checkout https://github.com/%GITHUB_REPOSITORY%.git source || exit /b 1
           cd source
+          git fetch origin %GITHUB_REF% || exit /b 1
           git checkout --detach %GITHUB_SHA% || exit /b 1
       - name: Install NASM and make
         run: |
@@ -61,6 +63,7 @@ jobs:
         run: |
           git clone --no-checkout "https://github.com/$GITHUB_REPOSITORY.git" source
           cd source
+          git fetch origin "$GITHUB_REF"
           git checkout --detach "$GITHUB_SHA"
       - name: Install NASM, make and X11 runtime
         run: |
