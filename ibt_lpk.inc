@@ -14,6 +14,7 @@ BPG             equ 32*NB
 APS             equ MC*NB*8
 
 section .data
+%ifndef IBT_SECOND_ENGINE
 align 32
 lpC10       dq 10.0
 lpC1        dq 1.0
@@ -30,6 +31,7 @@ lpMaskAbs   dq 7FFFFFFFFFFFFFFFh, 7FFFFFFFFFFFFFFFh, 7FFFFFFFFFFFFFFFh, 7FFFFFFF
 szTestOut   dw __utf16le__("lpk_test.txt"),0
 szProfOut   dw __utf16le__("lpk_prof.txt"),0
 %endif
+%endif ; read-only constants are shared by both numerical instances
 
 section .text
 
@@ -399,6 +401,8 @@ lp_run_n:
     ret
 
 %endif
+%ifndef IBT_RESIDUAL_ENGINE
+%ifndef IBT_SECOND_ENGINE
 lp_isa_probe:
     push rbx
     push rsi
@@ -452,6 +456,7 @@ lp_isa_probe:
     pop rbx
     ret
 
+%endif
 lp_vzero:
     test dword [lpIsa], 2
     jz .r
@@ -488,6 +493,7 @@ lp_acc_add:
     pop rbx
     ret
 
+%ifndef IBT_SECOND_ENGINE
 lp_count_pcores:
     push rbp
     mov rbp, rsp
@@ -576,6 +582,12 @@ isa_bits_apply:
     ret
 
 burn_thread:
+%ifdef IBT_CONTINUOUS
+%ifndef IBT_SECOND_ENGINE
+    jmp cont_burn_thread
+legacy_burn_thread:
+%endif
+%endif
     push rbp
     mov rbp, rsp
     push rbx
@@ -587,7 +599,9 @@ burn_thread:
     push r15
     and rsp, -16
     sub rsp, 80h
+%ifndef IBT_CONTINUOUS
     mov dword [lpStop], 0
+%endif
     mov dword [lpDie], 0
     mov dword [lpPhase], 0
     mov dword [lpDone], 0
@@ -726,6 +740,7 @@ lp_alloc:
     leave
     ret
 
+%endif
 lp_alloc_n:
     push rbp
     mov rbp, rsp
@@ -828,6 +843,8 @@ lp_alloc_n:
     mov r9d, PAGE_READWRITE
     call VirtualAlloc
     mov [lpPackB], rax
+    test rax, rax
+    jz .fail
     mov dword [lpNBuf], 1
     mov qword [lpA1], 0
     mov qword [lpX1], 0
@@ -2059,6 +2076,24 @@ lp_dgemm_neg:
     jz .nopk
     call lp_pack_a
 .nopk:
+%ifdef CONT_GEMM_TILED
+    cmp dword [contActive], 0
+    je .original_dispatch
+    cmp dword [lpIsaUse], 2
+    jb .original_dispatch
+%ifdef IBT_SECOND_ENGINE
+%ifdef IBT_THIRD_ENGINE
+    lea r10, [contC]
+%else
+    lea r10, [contB]
+%endif
+%else
+    lea r10, [contA]
+%endif
+    call cont_gemm_tiled
+    jmp .done
+.original_dispatch:
+%endif
     cmp dword [lpNthr], 2
     jb .ser
     cmp dword [lpGN], 8
@@ -2095,8 +2130,23 @@ lp_dgemm_neg:
     ret
 
 lp_par:
+%ifdef IBT_CONTINUOUS
+    cmp dword [contActive], 0
+%ifdef IBT_SECOND_ENGINE
+%ifdef IBT_THIRD_ENGINE
+    jne cont_par_c
+%else
+    jne cont_par_b
+%endif
+%else
+    jne cont_par_a
+%endif
+%endif
     push rbx
     sub rsp, 30h
+%ifdef LP_TRACE
+    call lp_trace_par_begin
+%endif
     mov dword [lpDone], 0
     mov dword [lpNext], 0
     mov dword [lpHere], 0
@@ -2113,6 +2163,9 @@ lp_par:
     pause
     jmp .wait
 .o:
+%ifdef LP_TRACE
+    call lp_trace_par_end
+%endif
     add rsp, 30h
     pop rbx
     ret
@@ -2172,6 +2225,7 @@ lp_job_run:
     je lp_touch_cols
     jmp lp_dgemm_cols
 
+%ifndef IBT_SECOND_ENGINE
 lp_worker:
     push rbp
     mov rbp, rsp
@@ -2282,6 +2336,7 @@ lp_workers_off:
     leave
     ret
 
+%endif
 align 32
 lp_dgetrs:
     push rbx
@@ -2337,6 +2392,11 @@ lp_dgetrs:
     inc ebx
     jmp .f1
 .bck:
+%ifdef RESID_TRACE
+%ifndef IBT_SECOND_ENGINE
+    call resid_trace_initial
+%endif
+%endif
     mov ebx, esi
     dec ebx
 .b1:
@@ -2369,6 +2429,11 @@ lp_dgetrs:
     vdivsd xmm3, xmm3, xmm2
     vmovsd [r10+rbx*8], xmm3
     dec ebx
+%ifdef RESID_TRACE
+%ifndef IBT_SECOND_ENGINE
+    call resid_trace_progress
+%endif
+%endif
     jmp .b1
 .out:
     pop r12
@@ -2377,6 +2442,7 @@ lp_dgetrs:
     pop rbx
     ret
 
+%endif ; IBT_RESIDUAL_ENGINE: only the original complete residual is needed
 align 32
 lp_resid:
     push rbx
@@ -2538,6 +2604,7 @@ lp_resid:
     pop rbx
     ret
 
+%ifndef IBT_SECOND_ENGINE
 lp_emit:
     push rbx
     push rsi
@@ -2545,6 +2612,8 @@ lp_emit:
     sub rsp, 28h
     lea rdi, [lineAcc]
 %if SELFTEST
+    cmp dword [lpTest], 0
+    je .format_time
     mov edx, [lpN]
     call lp_itoa
     mov byte [rdi], ' '
@@ -2557,16 +2626,23 @@ lp_emit:
     inc rdi
     mov byte [rdi], ' '
     inc rdi
+.format_time:
 %endif
     movsd xmm0, [lpTmpT]
     mov ecx, 3
     call lp_ftoa
 %if SELFTEST
+    cmp dword [lpTest], 0
+    je .time_field_done
     mov byte [rdi], ' '
     inc rdi
-%else
+    jmp .format_speed
+.time_field_done:
+%endif
     mov byte [rdi], 0
     lea rdi, [lineAcc+32]
+%if SELFTEST
+.format_speed:
 %endif
     mov eax, [lpN]
     cvtsi2sd xmm1, rax
@@ -2580,15 +2656,21 @@ lp_emit:
     mov ecx, 4
     call lp_ftoa
 %if SELFTEST
+    cmp dword [lpTest], 0
+    je .speed_field_done
     mov byte [rdi], ' '
     inc rdi
     movsd xmm0, [lpTmpR]
     call lp_sci
     mov byte [rdi], ' '
     inc rdi
-%else
+    jmp .format_residual
+.speed_field_done:
+%endif
     mov byte [rdi], 0
     lea rdi, [lineAcc+64]
+%if SELFTEST
+.format_residual:
 %endif
     movsd xmm0, [lpTmpN]
     call lp_sci
@@ -2803,3 +2885,4 @@ lp_sci:
     pop rsi
     pop rbx
     ret
+%endif ; IBT_SECOND_ENGINE: formatting belongs to the shared result publisher

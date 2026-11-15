@@ -19,8 +19,8 @@ numerical includes remain together at the end of the assembly unit.
 
 ## Build
 
-Requirements: NASM, a C linker, pthreads, the X11 and Xft development libraries,
-and UPX.
+Requirements: NASM, GNU Make, glibc, and the X11 and Xft runtime libraries.
+The x86-64 glibc loader is expected at `/lib64/ld-linux-x86-64.so.2`.
 
 ```sh
 cd unix
@@ -28,16 +28,21 @@ make
 ./IntelBurnTest
 ```
 
-The build produces `IntelBurnTest.unpacked` for debugging, packs the distributable
-`IntelBurnTest` with UPX/LZMA, runs a headless numerical self-test, and fails if
-the distributable exceeds 23 KiB (23,552 bytes). It also keeps the contiguous
-numerical instruction span under a conservative 16 KiB budget. On the measured
-i7-12700K it is about 12.2 KiB versus a 32 KiB L1 instruction cache; capacity
-alone cannot guarantee permanent cache residency. You can repeat the test with:
+NASM produces `IntelBurnTest` directly. The build checks the X11 and Xft imports
+and runs a headless numerical self-test with six verified resolutions and four
+compute threads. A failing test fails the build. The executable is uncompressed;
+the previous packed-size limit no longer applies. NASM checks that each numerical
+engine remains within its 16 KiB instruction-span budget and that both engines
+and their shared scheduler fit within the combined 32 KiB budget. These limits
+do not establish instruction-cache residency, throughput, or package power.
+You can repeat the self-test with:
 
 ```sh
 ./IntelBurnTest --selftest
 ```
+
+Run `make check-gui` on an X11 desktop to open the interface, check its drawing
+resources, and close it automatically.
 
 For UI smoke testing, `./IntelBurnTest --smoketest` opens a 1 MB, two-run test
 with logging enabled; close the window after the result appears.

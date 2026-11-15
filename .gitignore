@@ -1,8 +1,11 @@
 /bin/
 /dist/
 /unix/IntelBurnTest
+/unix/IntelBurnTest.build
+/unix/IntelBurnTest.verify-test
 /unix/IntelBurnTest.unpacked
 /unix/*.o
+/unix/.ibt-deps.mk
 /compare/
 __pycache__/
 *.py[cod]
@@ -14,6 +17,11 @@ lpk_test.txt
 lpk_prof.txt
 .vs/
 .vscode/
+web/node_modules/
+web/wasm/target/
+web/.edge-*/
+web/.chrome-*/
+web/qa*.png
 *.user
 *.suo
 /uefi/build/

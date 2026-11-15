@@ -1,0 +1,93 @@
+name: Desktop NASM validation
+
+on:
+  push:
+    branches: [main, codex/desktop-release-validation]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Draft release tag for the validated binaries
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: Fetch the exact source revision
+        run: |
+          git clone --no-checkout https://github.com/%GITHUB_REPOSITORY%.git source || exit /b 1
+          cd source
+          git fetch origin %GITHUB_REF% || exit /b 1
+          git checkout --detach %GITHUB_SHA% || exit /b 1
+      - name: Install NASM and make
+        run: |
+          C:\msys64\usr\bin\pacman.exe --noconfirm -Sy --needed mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-nasm || exit /b 1
+          copy C:\msys64\ucrt64\bin\mingw32-make.exe C:\msys64\ucrt64\bin\make.exe || exit /b 1
+      - name: Build and test
+        run: |
+          set "PATH=C:\msys64\ucrt64\bin;%PATH%"
+          cd source
+          nasm -v || exit /b 1
+          make || exit /b 1
+          make check || exit /b 1
+          make check-verifier || exit /b 1
+          make check-gui || exit /b 1
+      - name: Attach the validated Windows executable
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          cd source
+          for /f "delims=" %%D in ('gh release view "%RELEASE_TAG%" --json isDraft --jq .isDraft') do set "IS_DRAFT=%%D"
+          if not "%IS_DRAFT%"=="true" exit /b 1
+          for /f "delims=" %%D in ('gh release view "%RELEASE_TAG%" --json targetCommitish --jq .targetCommitish') do set "RELEASE_COMMIT=%%D"
+          if not "%RELEASE_COMMIT%"=="%GITHUB_SHA%" exit /b 1
+          gh release upload "%RELEASE_TAG%" bin/IntelBurnTest.exe || exit /b 1
+
+  linux:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Fetch the exact source revision
+        run: |
+          git clone --no-checkout "https://github.com/$GITHUB_REPOSITORY.git" source
+          cd source
+          git fetch origin "$GITHUB_REF"
+          git checkout --detach "$GITHUB_SHA"
+      - name: Install NASM, make and X11 runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nasm make libx11-6 libxft2 xvfb
+      - name: Build and test
+        run: |
+          cd source
+          Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
+          export DISPLAY=:99
+          nasm -v
+          make
+          make check
+          make check-verifier
+          make check-gui
+      - name: Attach the validated Linux executable
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          cd source
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          test "$(gh release view "$RELEASE_TAG" --json targetCommitish --jq .targetCommitish)" = "$GITHUB_SHA"
+          mv unix/IntelBurnTest unix/IntelBurnTest-linux-x64
+          gh release upload "$RELEASE_TAG" unix/IntelBurnTest-linux-x64
+

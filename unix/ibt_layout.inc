@@ -61,10 +61,17 @@ draw_config:
     mov eax, [rdx+rax*4]
     jmp .mb
 .maxmb:
+    cmp dword [running], 0
+    je .maximum_idle
+    mov eax, [stressMB]
+    jmp .mb
+.maximum_idle:
     mov eax, [freeMB]
     sub eax, 256
-    jnc .mb
+    jnc .maxplan
     mov eax, 1
+.maxplan:
+    call cont_max_mb
     jmp .mb
 .custommb:
     mov eax, [customMB]
@@ -110,6 +117,26 @@ draw_config:
     call draw_log_check
 .logtxt:
     DRAW_LABEL 43, 124, szLog, COL_FG, text
+    DRAW_ROUND 222, 112, 13, 13, COL_BORDER, 2
+    DRAW_ROUND 223, 113, 11, 11, COL_PANEL, 1
+    cmp dword [overlapRuns], 0
+    je .overlap_label
+    DRAW_RECT 225, 115, 7, 7, COL_CHECK, fill
+.overlap_label:
+    call thread_count
+    cmp eax, 3
+    jb .overlap_disabled
+    cmp dword [timesValue], 2
+    jb .overlap_disabled
+    DRAW_LABEL 241, 124, szOverlap, COL_FG, text
+    jmp .overlap_done
+.overlap_disabled:
+    cmp dword [running], 0
+    jne .overlap_disabled_label
+    mov dword [overlapRuns], 0
+.overlap_disabled_label:
+    DRAW_LABEL 241, 124, szOverlap, COL_MUTED, text
+.overlap_done:
     pop rbp
     ret
 
@@ -325,6 +352,10 @@ draw_results:
     mov edi, 42
     mov esi, 354
     lea rdx, [szAwaiting]
+    cmp dword [lpAllocFail], 0
+    je .signature_check
+    lea rdx, [szMemoryError]
+.signature_check:
     cmp dword [haveResid], 0
     je .sigstatus
     lea rdx, [resultResid]

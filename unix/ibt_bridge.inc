@@ -273,28 +273,31 @@ isqrt:
     ret
 
 post_line:
+    lea rcx, [lineAcc]
+on_result_ptr:
     push rbx
     push rsi
     push rdi
-    lea rsi, [lineAcc]
+    mov rbx, rcx
+    mov rsi, rbx
     lea rdi, [resultTime]
     call copyz
-    lea rsi, [lineAcc+32]
+    lea rsi, [rbx+32]
     lea rdi, [resultSpeed]
     call copyz
-    lea rsi, [lineAcc+64]
+    lea rsi, [rbx+64]
     lea rdi, [resultResid]
     call copyz
     inc dword [resultIndex]
     cmp dword [haveResid], 0
     jne .compare
-    lea rsi, [lineAcc+64]
+    lea rsi, [rbx+64]
     lea rdi, [firstResid]
     call copyz
     mov dword [haveResid], 1
     jmp .pass
 .compare:
-    lea rsi, [lineAcc+64]
+    lea rsi, [rbx+64]
     lea rdi, [firstResid]
 .cmp:
     mov al, [rsi]
@@ -313,6 +316,10 @@ post_line:
 .pass:
     inc dword [passCount]
 .logged:
+    mov rsi, rbx
+    lea rdi, [lineAcc]
+    mov ecx, 128
+    rep movsb
     call log_line
     mov dword [uiDirty], 1
     pop rdi
@@ -343,6 +350,13 @@ log_open:
     mov edi, eax
     lea rsi, [logHeader]
     mov edx, logHeaderLen
+    mov eax, 1
+    syscall
+    cmp dword [overlapRuns], 0
+    je .out
+    mov edi, [logFd]
+    lea rsi, [logOverlap]
+    mov edx, logOverlapLen
     mov eax, 1
     syscall
 .out:

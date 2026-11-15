@@ -1,0 +1,27 @@
+; The 26 routines in the original semantic baseline, in stable order.
+KERNEL_LPK lp_fill_cols
+KERNEL_LPK lp_fill_ones
+KERNEL_LPK lp_dgetrf
+KERNEL_LPK lp_scale_col
+KERNEL_LPK lp_daxpy_neg
+KERNEL_LPK lp_daxpy4_neg
+KERNEL_LPK lp_panel
+KERNEL_LPK lp_laswp_cols
+KERNEL_LPK lp_dgetf2
+KERNEL_LPK lp_pivot
+KERNEL_LPK lp_swap_rows
+KERNEL_LPK lp_dtrsm_cols
+KERNEL_LPK lp_dgemm_update
+KERNEL_LPK lp_steal
+KERNEL_LPK lp_job_run
+KERNEL_LPK lp_dgetrs
+KERNEL_LPK lp_resid
+KERNEL_BENCH lp_pack_a
+KERNEL_BENCH lp_pack_b
+KERNEL_BENCH lp_pack_b_all
+KERNEL_BENCH lp_dgemm_ir
+KERNEL_BENCH lp_dgemm_cols
+KERNEL_BENCH lp_k12x4
+KERNEL_BENCH lp_k8x4
+KERNEL_BENCH lp_k8x4_avx
+KERNEL_BENCH lp_krest

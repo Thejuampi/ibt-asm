@@ -3,6 +3,116 @@ _start:
     and rsp, -16
     cmp qword [r12], 2
     jb .gui
+%ifdef ELF_NATIVE
+    mov rsi, [r12+16]
+    lea rdi, [elf_verify_option]
+    call streq
+    test eax, eax
+    jz .check_prepare_option
+    call elf_verify_kernels
+    test eax, eax
+    jz .exit1
+    xor edi, edi
+    jmp .exit
+.check_prepare_option:
+    mov rsi, [r12+16]
+    lea rdi, [elf_prepare_test_option]
+    call streq
+    test eax, eax
+    jz .check_gui_option
+    cmp qword [r12], 3
+    jne .exit1
+    mov eax, 90                    ; chmod the NASM-created test executable
+    mov rdi, [r12+24]
+    mov esi, 0o755
+    syscall
+    test eax, eax
+    js .exit1
+    xor edi, edi
+    jmp .exit
+.check_gui_option:
+    mov rsi, [r12+16]
+    lea rdi, [elf_gui_test_option]
+    call streq
+    test eax, eax
+    jz .check_build_option
+    call elf_load_gui
+    test eax, eax
+    jz .gui_test_import_fail
+    call runtime_init
+    call ui_open
+    test eax, eax
+    jz .gui_test_display_fail
+    cmp qword [xftDraw], 0
+    je .gui_test_fail
+    cmp qword [xftFont], 0
+    je .gui_test_fail
+    cmp qword [xftFontBold], 0
+    je .gui_test_fail
+    cmp qword [xftFontLarge], 0
+    je .gui_test_fail
+    cmp qword [flameImage], 0
+    je .gui_test_fail
+    cmp qword [coffeeImage], 0
+    je .gui_test_fail
+    call draw_ui
+    mov rdi, [xDisplay]
+    call XFlush
+    call ui_shutdown
+    xor edi, edi
+    jmp .exit
+.gui_test_fail:
+    call ui_shutdown
+    lea rsi, [elf_gui_resources_error]
+    mov edx, elf_gui_resources_error_end - elf_gui_resources_error
+    call elf_report_error
+    mov edi, 3
+    jmp .exit
+.gui_test_display_fail:
+    lea rsi, [elf_gui_display_error]
+    mov edx, elf_gui_display_error_end - elf_gui_display_error
+    call elf_report_error
+    mov edi, 2
+    jmp .exit
+.gui_test_import_fail:
+    lea rsi, [elf_gui_import_error]
+    mov edx, elf_gui_import_error_end - elf_gui_import_error
+    call elf_report_error
+    mov edi, 4
+    jmp .exit
+.check_build_option:
+    mov rsi, [r12+16]
+    lea rdi, [elf_build_test_option]
+    call streq
+    test eax, eax
+    jz .regular_option
+    call elf_verify_kernels
+    test eax, eax
+    jz .exit1
+    call elf_load_gui
+    test eax, eax
+    jnz .build_gui_loaded
+    lea rsi, [elf_gui_import_error]
+    mov edx, elf_gui_import_error_end - elf_gui_import_error
+    call elf_report_error
+    jmp .exit1
+.build_gui_loaded:
+    cmp qword [r12], 3
+    jb .exit1
+    mov rax, [r12+8]
+    mov [elf_build_source], rax
+    mov rax, [r12+24]
+    mov [elf_build_destination], rax
+    ; NASM creates a regular output file; make it executable before testing it.
+    mov eax, 90                    ; chmod
+    mov rdi, [r12+8]
+    mov esi, 0o755
+    syscall
+    test eax, eax
+    js .exit1
+    jmp .selftest
+.regular_option:
+%endif
     mov rsi, [r12+16]
     lea rdi, [szSelftest]
     call streq
@@ -15,6 +125,16 @@ _start:
     jz .gui
     mov dword [uiSmoke], 1
 .gui:
+%ifdef ELF_NATIVE
+    call elf_load_gui
+    test eax, eax
+    jnz .gui_loaded
+    lea rsi, [elf_gui_import_error]
+    mov edx, elf_gui_import_error_end - elf_gui_import_error
+    call elf_report_error
+    jmp .exit1
+.gui_loaded:
+%endif
     call runtime_init
     cmp dword [uiSmoke], 0
     je .open
@@ -37,15 +157,31 @@ _start:
     jmp .exit
 .selftest:
     call runtime_init
-    mov dword [nproc], 2
-    mov dword [stressMB], 1
-    mov dword [targetRuns], 1
+    mov dword [nproc], 4
+    mov dword [stressMB], 32
+    mov dword [contFixedN], 1024
+    mov dword [targetRuns], 6
+    mov dword [overlapRuns], 1
     mov dword [resultState], RESULT_RUNNING
     call burn_thread
+    call cont_drain
     cmp dword [failed], 0
     jne .exit1
-    cmp dword [passCount], 1
+    cmp dword [passCount], 6
     jne .exit1
+    cmp dword [contVerified], 6
+    jne .exit1
+%ifdef ELF_NATIVE
+    cmp qword [elf_build_destination], 0
+    je .selftest_done
+    mov eax, 82                    ; rename tested image into place
+    mov rdi, [elf_build_source]
+    mov rsi, [elf_build_destination]
+    syscall
+    test eax, eax
+    js .exit1
+.selftest_done:
+%endif
     xor edi, edi
     jmp .exit
 .exit1:
