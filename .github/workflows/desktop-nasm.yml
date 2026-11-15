@@ -22,10 +22,11 @@ jobs:
           git checkout --detach %GITHUB_SHA% || exit /b 1
       - name: Install NASM and make
         run: |
-          C:\msys64\usr\bin\pacman.exe --noconfirm -Sy --needed make nasm || exit /b 1
+          C:\msys64\usr\bin\pacman.exe --noconfirm -Sy --needed mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-nasm || exit /b 1
+          copy C:\msys64\ucrt64\bin\mingw32-make.exe C:\msys64\ucrt64\bin\make.exe || exit /b 1
       - name: Build and test
         run: |
-          set "PATH=C:\msys64\usr\bin;%PATH%"
+          set "PATH=C:\msys64\ucrt64\bin;%PATH%"
           cd source
           nasm -v || exit /b 1
           make || exit /b 1
