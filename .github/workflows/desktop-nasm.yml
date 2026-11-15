@@ -4,9 +4,14 @@ on:
   push:
     branches: [codex/desktop-release-validation]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Draft release tag for the validated binaries
+        required: false
+        type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   windows:
@@ -33,6 +38,14 @@ jobs:
           make check || exit /b 1
           make check-verifier || exit /b 1
           make check-gui || exit /b 1
+      - name: Attach the validated Windows executable
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          cd source
+          gh release upload "%RELEASE_TAG%" bin/IntelBurnTest.exe || exit /b 1
 
   linux:
     runs-on: ubuntu-24.04
@@ -59,4 +72,13 @@ jobs:
           make check
           make check-verifier
           make check-gui
+      - name: Attach the validated Linux executable
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          cd source
+          mv unix/IntelBurnTest unix/IntelBurnTest-linux-x64
+          gh release upload "$RELEASE_TAG" unix/IntelBurnTest-linux-x64
 
