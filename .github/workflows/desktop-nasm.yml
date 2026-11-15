@@ -45,6 +45,10 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           cd source
+          for /f "delims=" %%D in ('gh release view "%RELEASE_TAG%" --json isDraft --jq .isDraft') do set "IS_DRAFT=%%D"
+          if not "%IS_DRAFT%"=="true" exit /b 1
+          for /f "delims=" %%D in ('gh release view "%RELEASE_TAG%" --json targetCommitish --jq .targetCommitish') do set "RELEASE_COMMIT=%%D"
+          if not "%RELEASE_COMMIT%"=="%GITHUB_SHA%" exit /b 1
           gh release upload "%RELEASE_TAG%" bin/IntelBurnTest.exe || exit /b 1
 
   linux:
@@ -79,6 +83,8 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           cd source
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          test "$(gh release view "$RELEASE_TAG" --json targetCommitish --jq .targetCommitish)" = "$GITHUB_SHA"
           mv unix/IntelBurnTest unix/IntelBurnTest-linux-x64
           gh release upload "$RELEASE_TAG" unix/IntelBurnTest-linux-x64
 
