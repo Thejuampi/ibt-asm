@@ -2,6 +2,7 @@ event_loop:
     push rbp
     mov rbp, rsp
 .loop:
+    call cont_drain
     cmp dword [uiDone], 0
     je .paint
     call ui_finish
@@ -177,10 +178,24 @@ handle_button:
     cmp eax, 24
     jb .aboutbtn
     cmp eax, 218
-    jae .aboutbtn
+    jae .overlap
     cmp dword [running], 0
     jne .out
     xor dword [logEnabled], 1
+    jmp .dirty
+.overlap:
+    cmp eax, 222
+    jb .aboutbtn
+    cmp eax, 438
+    jae .aboutbtn
+    cmp dword [running], 0
+    jne .out
+    call thread_count
+    cmp eax, 3
+    jb .out
+    cmp dword [timesValue], 2
+    jb .out
+    xor dword [overlapRuns], 1
     jmp .dirty
 .aboutbtn:
     cmp eax, 462
@@ -303,6 +318,14 @@ ui_start:
     mov eax, 1
 .runs:
     mov [targetRuns], eax
+    cmp eax, 2
+    jb .no_overlap
+    call thread_count
+    cmp eax, 3
+    jae .mode_ready
+.no_overlap:
+    mov dword [overlapRuns], 0
+.mode_ready:
     mov eax, [stressChoice]
     cmp eax, 3
     je .maximum
@@ -314,8 +337,10 @@ ui_start:
 .maximum:
     mov eax, [freeMB]
     sub eax, 256
-    jnc .mem
+    jnc .maximum_plan
     mov eax, 1
+.maximum_plan:
+    call cont_max_mb
     jmp .mem
 .custom:
     mov eax, [customMB]
@@ -323,11 +348,17 @@ ui_start:
     jnz .mem
     mov eax, 1
 .mem:
-    cmp eax, [freeMB]
-    jbe .memok
-    mov eax, [freeMB]
 .memok:
     mov [stressMB], eax
+    call cont_plan_bytes
+    mov edx, [freeMB]
+    shl rdx, 20
+    cmp rax, rdx
+    jbe .memory_ready
+    mov dword [lpAllocFail], 1
+    mov dword [resultState], RESULT_FAIL
+    jmp .out
+.memory_ready:
     mov dword [failed], 0
     mov dword [haveResid], 0
     mov dword [passCount], 0
@@ -340,6 +371,7 @@ ui_start:
     mov dword [flameFrame], 0
     mov dword [flameTick], 0
     call log_open
+    mov dword [lpStop], 0
     xor ecx, ecx
     xor edx, edx
     lea r8, [burn_thread]
@@ -380,6 +412,7 @@ ui_stop:
 ui_finish:
     push rbp
     mov rbp, rsp
+    call cont_drain
     mov dword [uiDone], 0
     cmp dword [running], 0
     je .out

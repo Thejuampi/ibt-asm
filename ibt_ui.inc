@@ -140,6 +140,12 @@ wndproc:
     je .cmbstress
     cmp ecx, IDC_THREADS
     je .cmbthr
+    cmp ecx, IDC_OVERLAP
+    je .overlapchg
+    cmp ecx, IDC_TIMES
+    jne .cmdend
+    cmp eax, 0300h ; EN_CHANGE
+    je .optionschg
     jmp .cmdend
 .cmbstress:
     cmp eax, CBN_SELCHANGE
@@ -148,6 +154,8 @@ wndproc:
     je .cmbdrop
     jmp .cmdend
 .cmbthr:
+    cmp eax, CBN_SELCHANGE
+    je .optionschg
     cmp eax, CBN_DROPDOWN
     je .cmbdrop
     jmp .cmdend
@@ -164,6 +172,16 @@ wndproc:
     call show_about
     jmp .cmdend
 .stresschg:
+    call stress_toggle_custom
+    jmp .cmdend
+.overlapchg:
+    test eax, eax ; BN_CLICKED, not focus notifications
+    jnz .cmdend
+    call overlap_setting
+    call stress_toggle_custom
+    jmp .cmdend
+.optionschg:
+    call overlap_availability
     call stress_toggle_custom
     jmp .cmdend
 .coffee:
@@ -186,6 +204,7 @@ wndproc:
 .flame:
     cmp dword [running], 0
     je .flamedone
+    call cont_drain
     call flame_tick
 .flamedone:
     xor eax, eax
@@ -199,14 +218,9 @@ wndproc:
 
 .phase:
     sub rsp, 28h
-    call GetCurrentThread
-    mov rcx, rax
-    xor edx, edx
-    test r8, r8
-    jnz .pset
-    mov edx, 1
-.pset:
-    call SetThreadPriority
+    call cont_info_update
+    mov ecx, [passCount]
+    call title_progress
     xor eax, eax
     add rsp, 28h
     ret
@@ -928,6 +942,8 @@ PROC_FRAME ui_populate, 38h, rbx
     xor r8d, r8d
     xor r9d, r9d
     call SendMessageW
+    call overlap_availability
+    call overlap_tooltip
     ENDPROC_SAVED 38h, rbx
 
 %unmacro UI_COMBO_APPEND 1
@@ -940,7 +956,95 @@ PROC_FRAME add_thr, 30h
     call SendMessageW
     ENDPROC
 
-PROC_FRAME stress_toggle_custom, 38h, rbx
+PROC_FRAME overlap_setting, 30h
+    mov rcx, [hChkOverlap]
+    mov edx, BM_GETCHECK
+    xor r8d, r8d
+    xor r9d, r9d
+    call SendMessageW
+    cmp eax, BST_CHECKED
+    sete al
+    movzx eax, al
+    mov [overlapRuns], eax
+    ENDPROC
+
+PROC_FRAME overlap_availability, 38h, rbx
+    cmp qword [hChkOverlap], 0
+    je .out
+    cmp dword [running], 0
+    jne .out
+    call thread_count
+    cmp eax, 3
+    jb .disabled
+    mov rcx, [hEdtTimes]
+    lea rdx, [tmpBuf]
+    mov r8d, 16
+    call GetWindowTextW
+    lea rcx, [tmpBuf]
+    call wtoi
+    cmp eax, 2
+    jb .disabled
+    mov ebx, 1
+    jmp .enable
+.disabled:
+    mov dword [overlapRuns], 0
+    mov rcx, [hChkOverlap]
+    mov edx, BM_SETCHECK
+    xor r8d, r8d
+    xor r9d, r9d
+    call SendMessageW
+    xor ebx, ebx
+.enable:
+    mov rcx, [hChkOverlap]
+    mov edx, ebx
+    call EnableWindow
+.out:
+    ENDPROC_SAVED 38h, rbx
+
+PROC_FRAME overlap_tooltip, 0B0h
+    xor ecx, ecx
+    lea rdx, [szTooltipClass]
+    xor r8d, r8d
+    mov r9d, 080000001h ; WS_POPUP | TTS_ALWAYSTIP
+    mov qword [rsp+20h], 0
+    mov qword [rsp+28h], 0
+    mov qword [rsp+30h], 0
+    mov qword [rsp+38h], 0
+    mov rax, [hMain]
+    mov [rsp+40h], rax
+    mov qword [rsp+48h], 0
+    mov rax, [hInst]
+    mov [rsp+50h], rax
+    mov qword [rsp+58h], 0
+    call CreateWindowExW
+    mov [hOverlapTip], rax
+    test rax, rax
+    jz .out
+    lea rcx, [rsp+60h]
+    mov edx, 72 ; sizeof(TOOLINFOW), Win64
+    call memzero
+    mov dword [rsp+60h], 72
+    mov dword [rsp+64h], 11h ; TTF_IDISHWND | TTF_SUBCLASS
+    mov rax, [hMain]
+    mov [rsp+68h], rax
+    mov rax, [hChkOverlap]
+    mov [rsp+70h], rax
+    lea rax, [szOverlapHint]
+    mov [rsp+90h], rax
+    mov rcx, [hOverlapTip]
+    mov edx, 0432h ; TTM_ADDTOOLW
+    xor r8d, r8d
+    lea r9, [rsp+60h]
+    call SendMessageW
+    mov rcx, [hOverlapTip]
+    mov edx, 0418h ; TTM_SETMAXTIPWIDTH
+    xor r8d, r8d
+    mov r9d, 360
+    call SendMessageW
+.out:
+    ENDPROC
+
+PROC_FRAME stress_toggle_custom, 78h, rbx
     mov rcx, [hCmbStress]
     mov edx, CB_GETCURSEL
     xor r8d, r8d
@@ -953,17 +1057,17 @@ PROC_FRAME stress_toggle_custom, 38h, rbx
     mov rcx, [hEdtMB]
     call EnableWindow
     call stress_mb
-    cmp ebx, 4
-    je .out
-    lea rcx, [tmpBuf]
+    ; Repainting the edit synchronously can reuse tmpBuf. Keep WM_SETTEXT's
+    ; source private so the old edit text cannot overwrite the new value.
+    lea rcx, [rsp+20h]
     lea rdx, [szNumFmt]
     mov r8d, [stressMB]
     call wsprintfW
     mov rcx, [hEdtMB]
-    lea rdx, [tmpBuf]
+    lea rdx, [rsp+20h]
     call SetWindowTextW
 .out:
-    ENDPROC_SAVED 38h, rbx
+    ENDPROC_SAVED 78h, rbx
 
 PROC_FRAME fonts_create, 40h
     lea rcx, [lf]
@@ -1229,20 +1333,16 @@ PROC_FRAME stress_mb, 38h, rbx
     cmp eax, 256
     jbe .maxs
     sub eax, 256
+    call cont_max_mb
     jmp .bound
 .maxs:
     shr eax, 1
+    call cont_max_mb
 .bound:
     cmp eax, 8
     jae .c2
     mov eax, 8
 .c2:
-    mov edx, [availMB]
-    test edx, edx
-    jz .ok
-    cmp eax, edx
-    jbe .ok
-    mov eax, edx
 .ok:
     mov [stressMB], eax
     ENDPROC_SAVED 38h, rbx
@@ -1354,9 +1454,16 @@ PROC_FRAME ui_running, 20h, rbx, r12
     setz r12b
     call GetCurrentThread
     mov rcx, rax
-    mov edx, 1
+    ; The asynchronous result queue and Stop need the same scheduling
+    ; priority as the compute workers while every selected CPU is busy.
+    mov edx, THR_HIGHEST
     test ebx, ebx
-    jnz .pri
+    jz .idle_priority
+    cmp dword [xtreme], 0
+    je .pri
+    mov edx, THR_TIMECRIT
+    jmp .pri
+.idle_priority:
     xor edx, edx
 .pri:
     call SetThreadPriority
@@ -1366,6 +1473,9 @@ PROC_FRAME ui_running, 20h, rbx, r12
     mov rcx, [hBtnStop]
     mov edx, ebx
     call EnableWindow
+    mov rcx, [hBtnStop]
+    lea rdx, [szStop]
+    call SetWindowTextW
     mov rcx, [hCmbStress]
     mov edx, r12d
     call EnableWindow
@@ -1375,6 +1485,17 @@ PROC_FRAME ui_running, 20h, rbx, r12
     mov rcx, [hEdtTimes]
     mov edx, r12d
     call EnableWindow
+    mov rcx, [hChkOverlap]
+    mov edx, r12d
+    call EnableWindow
+    mov rcx, [hEdtMB]
+    xor edx, edx
+    call EnableWindow
+    test ebx, ebx
+    jnz .controls_done
+    call overlap_availability
+    call stress_toggle_custom
+.controls_done:
     xor eax, eax
     mov [flameIdx], eax
     mov [flameWait], eax
@@ -1400,10 +1521,13 @@ PROC_FRAME start_burn, 48h, rbx
     mov eax, 1
 .t2:
     mov [targetRuns], eax
-    call stress_mb
-    mov eax, [stressMB]
+    call overlap_availability
+    call overlap_setting
+    call stress_toggle_custom
+    call cont_plan_bytes
     mov edx, [availMB]
-    cmp eax, edx
+    shl rdx, 20
+    cmp rax, rdx
     jbe .memok
     mov rcx, [hMain]
     lea rdx, [szMemErr]
@@ -1414,7 +1538,11 @@ PROC_FRAME start_burn, 48h, rbx
 .memok:
     call GetCurrentThread
     mov rcx, rax
-    mov edx, 1
+    mov edx, THR_HIGHEST
+    cmp dword [xtreme], 0
+    je .start_priority
+    mov edx, THR_TIMECRIT
+.start_priority:
     call SetThreadPriority
     mov dword [haveResid], 0
     mov dword [failed], 0
@@ -1429,6 +1557,8 @@ PROC_FRAME start_burn, 48h, rbx
     lea rdx, [szStart]
     call SetWindowTextW
     call log_open
+    mov dword [lpStop], 0
+    mov dword [contStopRequested], 0
     xor ecx, ecx
     xor edx, edx
     lea r8, [burn_thread]
@@ -1461,24 +1591,14 @@ PROC_FRAME stop_burn, 30h
     cmp dword [running], 0
     je .out
     mov dword [lpStop], 1
-    mov dword [running], 0
-    mov rcx, [hProc]
-    test rcx, rcx
-    jz .cl
-    mov edx, 30000
-    call WaitForSingleObject
-.cl:
-    call cleanup_proc
-    lea rcx, [szStoppedA]
-    call log_result
-    call log_close
-    lea rcx, [szStopped]
+    mov dword [contStopRequested], 1
+    lea rcx, [szStopping]
     call title_status
-    xor ecx, ecx
-    call ui_running
-    mov dword [resultState], RESULT_STOPPED
-    mov rcx, [hBtnStart]
-    lea rdx, [szRunAgain]
+    mov rcx, [hBtnStop]
+    xor edx, edx
+    call EnableWindow
+    mov rcx, [hBtnStop]
+    lea rdx, [szStopping]
     call SetWindowTextW
     call result_invalidate
 .out:
@@ -1496,12 +1616,33 @@ PROC_FRAME_ALIGNED post_line, 30h
     ENDPROC
 
 on_line:
+on_result_ptr:
     cmp dword [running], 0
     je .ignored
     jmp parse_result
 .ignored:
     xor eax, eax
     ret
+
+PROC_FRAME cont_info_update, 30h
+    lea rcx, [tmpBuf]
+    lea rdx, [szMatrixLogFmt]
+    mov r8d, [contContexts]
+    mov r9d, [contDisplayN]
+    cmp r8d, 1
+    jne .log_format
+    mov r9d, [lpN]
+.log_format:
+    cmp r8d, 1
+    jne .log_continuous
+    lea rdx, [szMatrixSingleLogFmt]
+.log_continuous:
+    mov eax, [stressMB]
+    mov [rsp+20h], eax
+    call wsprintfW
+    lea rcx, [tmpBuf]
+    call log_wstr
+    ENDPROC
 
 PROC_FRAME parse_result, 40h, rsi, rdi, r12, r13, r14
     mov r14, rcx
@@ -1588,6 +1729,7 @@ fail_now:
 PROC_FRAME on_done, 48h, rbx
     cmp dword [running], 0
     je .out
+    call cont_drain
     call cleanup_proc
     mov dword [running], 0
     xor ecx, ecx
@@ -1602,14 +1744,29 @@ PROC_FRAME on_done, 48h, rbx
     jne .alloc
     cmp dword [failed], 0
     jne .fail
-    cmp dword [passCount], 0
-    je .die
+    cmp dword [contStopRequested], 0
+    jne .stopped
+    mov eax, [passCount]
+    cmp eax, [targetRuns]
+    jne .die
     lea rcx, [szFinished]
     call title_status
     lea rcx, [szSuccessA]
     call log_result
     call log_close
     mov dword [resultState], RESULT_PASS
+    mov rcx, [hBtnStart]
+    lea rdx, [szRunAgain]
+    call SetWindowTextW
+    call result_invalidate
+    jmp .out
+.stopped:
+    lea rcx, [szStoppedA]
+    call log_result
+    call log_close
+    lea rcx, [szStopped]
+    call title_status
+    mov dword [resultState], RESULT_STOPPED
     mov rcx, [hBtnStart]
     lea rdx, [szRunAgain]
     call SetWindowTextW

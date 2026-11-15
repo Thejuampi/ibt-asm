@@ -47,6 +47,7 @@ hLblBits    resq 1
 hProc       resq 1
 running     resd 1
 xtreme      resd 1
+overlapRuns resd 1
 haveResid   resd 1
 failed      resd 1
 passCount   resd 1
@@ -130,7 +131,7 @@ tlsKey      resd 1
 
 section .data
 align 8
-szTitle       db 'IntelBurnTest v3.1 - by Thejuampi',0,0
+szTitle       db 'IntelBurnTest - by Thejuampi',0,0
 szFont        db 'Segoe UI,DejaVu Sans:size=9',0
 szFontBold    db 'Segoe UI,DejaVu Sans:bold:size=9',0
 szFontLarge   db 'Segoe UI,DejaVu Sans:bold:size=20',0
@@ -150,6 +151,7 @@ szTimes       db 'Times to run:',0
 szThreads     db 'Threads:',0
 szFree        db 'Free',0
 szLog         db 'Output results to results.log',0
+szOverlap     db 'Overlap runs (~2x memory)',0
 szThermal     db 'THERMAL LOAD',0
 szStart       db 'Start',0
 szRunAgain    db 'Run again',0
@@ -160,7 +162,9 @@ szMonitor     db 'STABILITY MONITOR',0
 szProgress    db 'RUN PROGRESS',0
 szReady       db 'READY',0
 szRunning     db 'RUNNING',0
-szPassed      db 'PASSED',0
+szPassed      db 'NO NUMERICAL ERRORS',0
+szMatrices    db 'Matrices: ',0
+szMatrixN     db ' | N=',0
 szFailed      db 'FAILED',0
 szStopped     db 'STOPPED',0
 szRunPrefix   db 'RUN ',0
@@ -170,10 +174,11 @@ szGflops      db 'GFLOPS',0
 szLastRun     db 'LAST RUN',0
 szSignature   db 'STABILITY SIGNATURE',0
 szAwaiting    db 'Waiting for the first completed run',0
+szMemoryError db 'Not enough RAM. Reduce size or turn off Overlap runs.',0
 szReference   db 'REFERENCE CAPTURED',0
 szConsistent  db 'CONSISTENT',0
 szAllMatch    db 'ALL RUNS MATCH',0
-szMismatch    db 'RESIDUAL MISMATCH',0
+szMismatch    db 'POSSIBLE SYSTEM INSTABILITY',0
 szDash        db '--',0
 szSeconds     db 's',0
 szSlash       db ' / ',0
@@ -211,6 +216,8 @@ szPreparing   db 'Preparing test data',0
 logName       db 'results.log',0
 logHeader     db 'IntelBurnTest Unix',10,'Time (s)    Speed (GFlops)    Result',10
 logHeaderLen  equ $-logHeader
+logOverlap db 'Overlap runs: on; same matrix size, about twice the RAM; full checks before counting.',10
+logOverlapLen equ $-logOverlap
 
 align 4
 flameBmp:

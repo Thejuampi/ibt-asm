@@ -5,6 +5,9 @@ default rel
 ; The numerical engine is included verbatim from the Windows build below.
 
 %define SELFTEST 0
+%define IBT_CONTINUOUS 1
+%define CONT_ASYNC_RESID 1
+%define CONT_PIPELINE 1
 %include "ibt_draw.inc"
 
 global _start
@@ -93,5 +96,12 @@ section .text
 %include "ibt_layout.inc"
 %include "ibt_draw_primitives.inc"
 %include "ibt_bridge.inc"
+%ifdef KERNEL_REFERENCE
+%include "../reference/numerical/ibt_lpk.inc"
+%include "../reference/numerical/bench_lib.inc"
+%else
 %include "../ibt_lpk.inc"
 %include "../bench_lib.inc"
+%endif
+lp_core_end:
+%include "../ibt_continuous.inc"

@@ -1,0 +1,205 @@
+; Stable symbol identities for the numerical verifier.
+;
+; The including image defines KERNEL_SYMBOL label. Keep the order unchanged:
+; the position is the identity shared by the candidate and reference image.
+; Entries cover the four existing checked spans, their direct branch targets,
+; and the symbols reached by their COFF relocations. Local branch labels are
+; normalized by instruction position, not by this table.
+;
+; Shared state and constants.
+KERNEL_SYMBOL lpStop
+KERNEL_SYMBOL lpIsaUse
+KERNEL_SYMBOL lpC1
+KERNEL_SYMBOL lpEps
+KERNEL_SYMBOL lpHalf
+KERNEL_SYMBOL lpMaskAbs
+KERNEL_SYMBOL lpTiny
+KERNEL_SYMBOL lpTwo24
+KERNEL_SYMBOL contActive
+KERNEL_SYMBOL xtreme
+
+; State belonging to the primary numerical engine.
+KERNEL_SYMBOL lpA
+KERNEL_SYMBOL lpB
+KERNEL_SYMBOL lpAccG
+KERNEL_SYMBOL lpAccP
+KERNEL_SYMBOL lpAccS
+KERNEL_SYMBOL lpAccT
+KERNEL_SYMBOL lpDie
+KERNEL_SYMBOL lpDone
+KERNEL_SYMBOL lpGA
+KERNEL_SYMBOL lpGB
+KERNEL_SYMBOL lpGC
+KERNEL_SYMBOL lpGK
+KERNEL_SYMBOL lpGLDA
+KERNEL_SYMBOL lpGM
+KERNEL_SYMBOL lpGN
+KERNEL_SYMBOL lpHere
+KERNEL_SYMBOL lpIpiv
+KERNEL_SYMBOL lpJob
+KERNEL_SYMBOL lpLDA
+KERNEL_SYMBOL lpN
+KERNEL_SYMBOL lpNext
+KERNEL_SYMBOL lpNthr
+KERNEL_SYMBOL lpPackA
+KERNEL_SYMBOL lpPackB
+KERNEL_SYMBOL lpPhase
+KERNEL_SYMBOL lpResidX
+KERNEL_SYMBOL lpSwN
+KERNEL_SYMBOL lpT0
+KERNEL_SYMBOL lpTJ
+KERNEL_SYMBOL lpTmpN
+KERNEL_SYMBOL lpTmpR
+KERNEL_SYMBOL lpTNB
+KERNEL_SYMBOL lpWorkers
+KERNEL_SYMBOL lpWrk
+KERNEL_SYMBOL lpX
+
+; State belonging to the second numerical engine.
+KERNEL_SYMBOL dual_lpA
+KERNEL_SYMBOL dual_lpB
+KERNEL_SYMBOL dual_lpAccG
+KERNEL_SYMBOL dual_lpAccP
+KERNEL_SYMBOL dual_lpAccS
+KERNEL_SYMBOL dual_lpAccT
+KERNEL_SYMBOL dual_lpDone
+KERNEL_SYMBOL dual_lpGA
+KERNEL_SYMBOL dual_lpGB
+KERNEL_SYMBOL dual_lpGC
+KERNEL_SYMBOL dual_lpGK
+KERNEL_SYMBOL dual_lpGLDA
+KERNEL_SYMBOL dual_lpGM
+KERNEL_SYMBOL dual_lpGN
+KERNEL_SYMBOL dual_lpHere
+KERNEL_SYMBOL dual_lpIpiv
+KERNEL_SYMBOL dual_lpJob
+KERNEL_SYMBOL dual_lpLDA
+KERNEL_SYMBOL dual_lpN
+KERNEL_SYMBOL dual_lpNext
+KERNEL_SYMBOL dual_lpNthr
+KERNEL_SYMBOL dual_lpPackA
+KERNEL_SYMBOL dual_lpPackB
+KERNEL_SYMBOL dual_lpPhase
+KERNEL_SYMBOL dual_lpResidX
+KERNEL_SYMBOL dual_lpSwN
+KERNEL_SYMBOL dual_lpT0
+KERNEL_SYMBOL dual_lpTJ
+KERNEL_SYMBOL dual_lpTmpN
+KERNEL_SYMBOL dual_lpTmpR
+KERNEL_SYMBOL dual_lpTNB
+KERNEL_SYMBOL dual_lpWrk
+KERNEL_SYMBOL dual_lpX
+
+; State belonging to the independent residual engine.
+KERNEL_SYMBOL verify_lpB
+KERNEL_SYMBOL verify_lpLDA
+KERNEL_SYMBOL verify_lpN
+KERNEL_SYMBOL verify_lpResidX
+KERNEL_SYMBOL verify_lpTmpN
+KERNEL_SYMBOL verify_lpTmpR
+KERNEL_SYMBOL verify_lpWrk
+KERNEL_SYMBOL verify_lpX
+
+; Primary numerical routines and helpers.
+KERNEL_SYMBOL lp_fill_cols
+KERNEL_SYMBOL lp_fill_ones
+KERNEL_SYMBOL lp_fill_x
+KERNEL_SYMBOL lp_fill_b
+KERNEL_SYMBOL lp_fill
+KERNEL_SYMBOL lp_dgetrf
+KERNEL_SYMBOL lp_scale_col
+KERNEL_SYMBOL lp_daxpy_neg
+KERNEL_SYMBOL lp_daxpy4_neg
+KERNEL_SYMBOL lp_panel
+KERNEL_SYMBOL lp_laswp_tail
+KERNEL_SYMBOL lp_laswp_cols
+KERNEL_SYMBOL lp_dgetf2
+KERNEL_SYMBOL lp_pivot
+KERNEL_SYMBOL lp_swap_rows
+KERNEL_SYMBOL lp_dtrsm_left
+KERNEL_SYMBOL lp_dtrsm_cols
+KERNEL_SYMBOL lp_dgemm_update
+KERNEL_SYMBOL lp_dgemm_neg
+KERNEL_SYMBOL lp_par
+KERNEL_SYMBOL lp_steal
+KERNEL_SYMBOL lp_job_run
+KERNEL_SYMBOL lp_worker
+KERNEL_SYMBOL lp_workers_on
+KERNEL_SYMBOL lp_workers_off
+KERNEL_SYMBOL lp_dgetrs
+KERNEL_SYMBOL lp_resid
+KERNEL_SYMBOL lp_pack_a
+KERNEL_SYMBOL lp_pack_b
+KERNEL_SYMBOL lp_pack_b_all
+KERNEL_SYMBOL lp_dgemm_ir
+KERNEL_SYMBOL lp_dgemm_cols
+KERNEL_SYMBOL lp_k12x4
+KERNEL_SYMBOL lp_k8x4
+KERNEL_SYMBOL lp_k8x4_avx
+KERNEL_SYMBOL lp_krest
+KERNEL_SYMBOL lp_acc_add
+KERNEL_SYMBOL lp_acc_from_q
+KERNEL_SYMBOL lp_fill_a
+KERNEL_SYMBOL lp_pack_drop
+KERNEL_SYMBOL lp_pack_ensure
+KERNEL_SYMBOL lp_touch_cols
+KERNEL_SYMBOL lp_vzero
+KERNEL_SYMBOL lp_wake
+
+; Second-instance numerical routines and helpers.
+KERNEL_SYMBOL dual_lp_fill_cols
+KERNEL_SYMBOL dual_lp_fill_ones
+KERNEL_SYMBOL dual_lp_fill_x
+KERNEL_SYMBOL dual_lp_fill_b
+KERNEL_SYMBOL dual_lp_fill
+KERNEL_SYMBOL dual_lp_dgetrf
+KERNEL_SYMBOL dual_lp_scale_col
+KERNEL_SYMBOL dual_lp_daxpy_neg
+KERNEL_SYMBOL dual_lp_daxpy4_neg
+KERNEL_SYMBOL dual_lp_panel
+KERNEL_SYMBOL dual_lp_laswp_tail
+KERNEL_SYMBOL dual_lp_laswp_cols
+KERNEL_SYMBOL dual_lp_dgetf2
+KERNEL_SYMBOL dual_lp_pivot
+KERNEL_SYMBOL dual_lp_swap_rows
+KERNEL_SYMBOL dual_lp_dtrsm_left
+KERNEL_SYMBOL dual_lp_dtrsm_cols
+KERNEL_SYMBOL dual_lp_dgemm_update
+KERNEL_SYMBOL dual_lp_dgemm_neg
+KERNEL_SYMBOL dual_lp_par
+KERNEL_SYMBOL dual_lp_steal
+KERNEL_SYMBOL dual_lp_job_run
+KERNEL_SYMBOL dual_lp_dgetrs
+KERNEL_SYMBOL dual_lp_resid
+KERNEL_SYMBOL dual_lp_pack_a
+KERNEL_SYMBOL dual_lp_pack_b
+KERNEL_SYMBOL dual_lp_pack_b_all
+KERNEL_SYMBOL dual_lp_dgemm_ir
+KERNEL_SYMBOL dual_lp_dgemm_cols
+KERNEL_SYMBOL dual_lp_k12x4
+KERNEL_SYMBOL dual_lp_k8x4
+KERNEL_SYMBOL dual_lp_k8x4_avx
+KERNEL_SYMBOL dual_lp_krest
+KERNEL_SYMBOL dual_lp_acc_add
+KERNEL_SYMBOL dual_lp_acc_from_q
+KERNEL_SYMBOL dual_lp_fill_a
+KERNEL_SYMBOL dual_lp_pack_drop
+KERNEL_SYMBOL dual_lp_pack_ensure
+KERNEL_SYMBOL dual_lp_touch_cols
+KERNEL_SYMBOL dual_lp_vzero
+KERNEL_SYMBOL dual_lp_wake
+
+; Shared scheduler and platform bridge targets.
+KERNEL_SYMBOL verify_lp_resid
+KERNEL_SYMBOL cont_par_a
+KERNEL_SYMBOL cont_par_b
+KERNEL_SYMBOL CloseHandle
+KERNEL_SYMBOL CreateThread
+KERNEL_SYMBOL SetThreadPriority
+KERNEL_SYMBOL WaitForSingleObject
+
+; Global boundaries that can be branch targets at the edge of a routine.
+KERNEL_SYMBOL lp_emit
+KERNEL_SYMBOL lp_core_end
+KERNEL_SYMBOL dual_core_end
+KERNEL_SYMBOL verify_core_end
