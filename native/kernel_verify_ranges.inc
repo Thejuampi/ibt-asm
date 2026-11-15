@@ -1,6 +1,7 @@
-; Compare the 53 named routines, using the reference image's symbol identities.
+; Compare the 53 named routines and the previously covered adjacent helpers.
 ; Define KERNEL_RVA_BIAS, KERNEL_FILE_SIZE, KERNEL_CONTEXT and KERNEL_FAILURE.
-; R12 points to the reference image; the context contains its symbol table.
+; R12 points to the reference image. The context has room for a seventh qword,
+; used here to retain the table cursor across calls to the comparator.
 
 %assign kernel_symbol_index 0
 %macro KERNEL_SYMBOL 1
@@ -10,31 +11,15 @@ kernel_symbol_id_%1 equ kernel_symbol_index
 %include 'native/kernel_symbol_table.inc'
 %unmacro KERNEL_SYMBOL 1
 
-    lea rax, [KERNEL_CONTEXT]
-    mov rbx, [rax+32]               ; reference symbol entries
-
+; A compact table of symbol identities replaces a separate copy of the same
+; comparison code for each range. Both images use the same symbol ordering.
+    jmp .kernel_ranges_begin
+.kernel_ranges_table:
+%assign kernel_range_count 0
 %macro KERNEL_COMPARE_ROUTINE 2
-    mov eax, [rbx + kernel_symbol_id_%1 * 4]
-    mov ecx, [rbx + kernel_symbol_id_%2 * 4]
-    cmp rcx, rax
-    jbe KERNEL_FAILURE
-    sub rcx, rax                    ; reference routine length
-    sub rax, KERNEL_RVA_BIAS        ; reference RVA to file offset
-    jc KERNEL_FAILURE
-    lea rdx, [rax + rcx]
-    cmp rdx, KERNEL_FILE_SIZE
-    ja KERNEL_FAILURE
-    lea rdx, [r12 + rax]
-    add rcx, rdx                    ; reference end
-    lea rsi, [rel %1]
-    lea rdi, [rel %2]
-    lea r8, [rel kernel_resolve_symbol]
-    lea r9, [KERNEL_CONTEXT]
-    call kcmp_compare_ranges
-    test eax, eax
-    jz KERNEL_FAILURE
+    dw kernel_symbol_id_%1, kernel_symbol_id_%2
+%assign kernel_range_count kernel_range_count + 1
 %endmacro
-
 %assign kernel_routine_count 0
 %macro KERNEL_ROUTINE 4
     KERNEL_COMPARE_ROUTINE %1, %2
@@ -53,9 +38,6 @@ KERNEL_COMPARE_ROUTINE verify_lp_resid, verify_core_end
 %if kernel_routine_count != 53
     %error The verifier must check all 53 numerical routines
 %endif
-
-; Preserve the coverage of adjacent helpers that belonged to the original
-; checked spans but are not themselves among the 53 named routines.
 KERNEL_COMPARE_ROUTINE lp_fill_x, lp_dgetrf
 KERNEL_COMPARE_ROUTINE lp_laswp_tail, lp_laswp_cols
 KERNEL_COMPARE_ROUTINE lp_dtrsm_left, lp_dtrsm_cols
@@ -65,4 +47,47 @@ KERNEL_COMPARE_ROUTINE dual_lp_fill_x, dual_lp_dgetrf
 KERNEL_COMPARE_ROUTINE dual_lp_laswp_tail, dual_lp_laswp_cols
 KERNEL_COMPARE_ROUTINE dual_lp_dtrsm_left, dual_lp_dtrsm_cols
 KERNEL_COMPARE_ROUTINE dual_lp_dgemm_neg, dual_lp_steal
+%if kernel_range_count != 62
+    %error The verifier must also check all nine adjacent helper ranges
+%endif
 %unmacro KERNEL_COMPARE_ROUTINE 2
+.kernel_ranges_end:
+
+.kernel_ranges_begin:
+    lea r9, [KERNEL_CONTEXT]
+    mov rbx, [r9+32]               ; reference symbol entries
+    lea rax, [rel .kernel_ranges_table]
+    mov [r9+48], rax               ; cursor survives comparator calls
+.kernel_ranges_next:
+    lea r9, [KERNEL_CONTEXT]
+    mov r10, [r9+48]
+    lea rax, [rel .kernel_ranges_end]
+    cmp r10, rax
+    je .kernel_ranges_done
+    movzx eax, word [r10]
+    movzx edx, word [r10+2]
+    mov r8, [r9+24]                ; loaded-image symbol entries
+    mov esi, [r8+rax*4]
+    mov edi, [r8+rdx*4]
+    add rsi, [r9]
+    add rdi, [r9]
+    mov eax, [rbx+rax*4]
+    mov ecx, [rbx+rdx*4]
+    cmp rcx, rax
+    jbe KERNEL_FAILURE
+    sub rcx, rax                   ; reference routine length
+    sub rax, KERNEL_RVA_BIAS       ; reference RVA to file offset
+    jc KERNEL_FAILURE
+    lea rdx, [rax+rcx]
+    cmp rdx, KERNEL_FILE_SIZE
+    ja KERNEL_FAILURE
+    lea rdx, [r12+rax]
+    add rcx, rdx                   ; reference end
+    lea r8, [rel kernel_resolve_symbol]
+    call kcmp_compare_ranges
+    test eax, eax
+    jz KERNEL_FAILURE
+    lea r9, [KERNEL_CONTEXT]
+    add qword [r9+48], 4
+    jmp .kernel_ranges_next
+.kernel_ranges_done:

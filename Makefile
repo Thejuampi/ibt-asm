@@ -61,6 +61,9 @@ check-verifier: $(TARGET)
 	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -DSELFTEST=1 -o "$(BIN_DIR)/ibt-kernel-mutation.exe" native/kernel_verification_mutation.asm
 	cmd /v:on /c "start "" /wait "$(BIN_DIR)/ibt-kernel-mutation.exe" -v & if !ERRORLEVEL! EQU 1 (exit /b 0) else (exit /b 1)"
 	@echo Verifier rejected the modified numerical routines
+	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -DSELFTEST=1 -o "$(BIN_DIR)/ibt-kernel-late-mutation.exe" native/kernel_late_mutation.asm
+	cmd /v:on /c "start "" /wait "$(BIN_DIR)/ibt-kernel-late-mutation.exe" -v & if !ERRORLEVEL! EQU 1 (exit /b 0) else (exit /b 1)"
+	@echo Verifier rejected the modified final helper
 
 clean:
 	@if exist "$(BIN_DIR)" rmdir /S /Q "$(BIN_DIR)"

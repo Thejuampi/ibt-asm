@@ -3,6 +3,7 @@ LOADER ?= /lib64/ld-linux-x86-64.so.2
 TARGET := IntelBurnTest
 CANDIDATE := IntelBurnTest.build
 MUTATION := IntelBurnTest.verify-test
+LATE_MUTATION := IntelBurnTest.verify-late-test
 EQUIVALENT := IntelBurnTest.equivalent-mov IntelBurnTest.equivalent-nop IntelBurnTest.equivalent-branch IntelBurnTest.equivalent-address
 COMPARE_TEST := IntelBurnTest.compare-test
 DEPFILE := .ibt-deps.mk
@@ -58,6 +59,9 @@ check-verifier: $(TARGET)
 	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -I ../ -DKERNEL_MUTATION_ELF=1 -o "$(MUTATION)" ../native/kernel_verification_mutation.asm
 	./$(TARGET) --prepare-test "$(MUTATION)"
 	@$(LOADER) ./$(MUTATION) --verify-kernels; status=$$?; if [ $$status -eq 1 ]; then echo "Verifier rejected the modified numerical routines"; else echo "ERROR: verifier did not reject the mutation"; exit 1; fi
+	$(NASM) -w-zeroing -w-pp-macro-redef-multi -f bin -I ../ -DKERNEL_MUTATION_ELF=1 -o "$(LATE_MUTATION)" ../native/kernel_late_mutation.asm
+	./$(TARGET) --prepare-test "$(LATE_MUTATION)"
+	@$(LOADER) ./$(LATE_MUTATION) --verify-kernels; status=$$?; if [ $$status -eq 1 ]; then echo "Verifier rejected the modified final helper"; else echo "ERROR: verifier did not reject the final helper mutation"; exit 1; fi
 
 clean:
-	rm -f $(TARGET) $(CANDIDATE) $(MUTATION) $(EQUIVALENT) $(COMPARE_TEST) $(DEPFILE)
+	rm -f $(TARGET) $(CANDIDATE) $(MUTATION) $(LATE_MUTATION) $(EQUIVALENT) $(COMPARE_TEST) $(DEPFILE)

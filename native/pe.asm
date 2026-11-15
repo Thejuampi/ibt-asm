@@ -103,12 +103,13 @@ section .v3str follows=.data vfollows=.data align=16 valign=16
 pe_v3str_start:
 section .idata follows=.v3str vfollows=.v3str align=8 valign=8
 pe_idata_start:
-section .pe_bss progbits follows=.idata vfollows=.idata align=64 valign=64
+; Uninitialized state occupies memory, not bytes in the executable.
+section .pe_bss nobits follows=.idata align=64
 pe_bss_start:
 %ifdef KERNEL_EQUIVALENT_ADDRESS
     resb 64
 %endif
-section .rsrc follows=.pe_bss vfollows=.pe_bss align=512 valign=4096
+section .rsrc follows=.idata vfollows=.pe_bss align=512 valign=4096
 section .reloc follows=.rsrc vfollows=.rsrc align=512 valign=4096
 pe_reloc_start:
 
@@ -438,7 +439,7 @@ pe_verify_reference:
     push r13
     push r14
     push r15
-    sub rsp, 0x88
+    sub rsp, 0x98
     xor r15d, r15d
     mov edx, 0x80000000
     mov r8d, 1
@@ -519,7 +520,7 @@ pe_verify_reference:
     call CloseHandle
 .done:
     mov eax, r15d
-    add rsp, 0x88
+    add rsp, 0x98
     pop r15
     pop r14
     pop r13
@@ -616,7 +617,7 @@ pe_reloc_end:
 pe_text_raw_size equ ((((pe_text_primary_end - pe_text_start + 15) & ~15) + pe_text_end - pe_v3text_start + 0x1ff) & ~0x1ff)
 pe_data_init_size equ (((((pe_data_primary_end - pe_data_start + 15) & ~15) + pe_v3str_end - pe_v3str_start + 7) & ~7) + pe_data_initialized_end - pe_idata_start)
 pe_data_virtual_size equ ((pe_data_init_size + 63) & ~63) + pe_bss_end - pe_bss_start
-pe_data_raw_size equ (pe_data_virtual_size + 0x1ff) & ~0x1ff
+pe_data_raw_size equ (pe_data_init_size + 0x1ff) & ~0x1ff
 pe_rsrc_raw_size equ (pe_rsrc_end - pe_rsrc_start + 0x1ff) & ~0x1ff
 pe_reloc_raw_size equ (pe_reloc_end - pe_reloc_start + 0x1ff) & ~0x1ff
 times pe_reloc_raw_size - (pe_reloc_end - pe_reloc_start) db 0
