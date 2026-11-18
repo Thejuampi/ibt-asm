@@ -23,7 +23,7 @@ section .header start=0 vstart=ELF_BASE
     ; Writable data and zero-initialized application state.
     dd 1, 6
     dq elf_data_start - ELF_BASE, elf_data_start, elf_data_start
-    dq elf_data_size, elf_data_size, 0x1000
+    dq elf_data_file_size, elf_data_mem_size, 0x1000
     ; Dynamic linker metadata.
     dd 2, 6
     dq elf_dynamic - ELF_BASE, elf_dynamic, elf_dynamic
@@ -74,7 +74,7 @@ section .data follows=.text vfollows=.text align=4096 valign=4096
 elf_data_start:
 section .dynamic follows=.data vfollows=.data align=16 valign=16
 elf_dynamic_start:
-section .elf_bss progbits follows=.dynamic vfollows=.dynamic align=64 valign=64
+section .elf_bss nobits follows=.dynamic align=64
 elf_bss_start:
 %ifdef KERNEL_EQUIVALENT_ADDRESS
     resb 64
@@ -406,4 +406,5 @@ elf_name_%1:
 elf_strings_end:
 elf_dynamic_data_end:
 
-elf_data_size equ (((((elf_data_primary_end - elf_data_start + 15) & ~15) + elf_dynamic_data_end - elf_dynamic_start + 63) & ~63) + elf_bss_end - elf_bss_start)
+elf_data_file_size equ ((elf_data_primary_end - elf_data_start + 15) & ~15) + elf_dynamic_data_end - elf_dynamic_start
+elf_data_mem_size equ ((elf_data_file_size + 63) & ~63) + elf_bss_end - elf_bss_start
