@@ -71,6 +71,8 @@ extern SetThreadPriority
 extern GetCurrentThread
 extern WakeByAddressAll
 extern GetCommandLineW
+extern CommandLineToArgvW
+extern LocalFree
 extern GetProcessHeap
 extern HeapAlloc
 extern HeapFree
@@ -766,53 +768,59 @@ PROC_FRAME_ALIGNED start, 80h
     mov [lpTlsIdx], eax
 %if SELFTEST
     call GetCommandLineW
-    mov r10, rax
-.tscan:
-    cmp word [r10], 0
-    je .notest
-    cmp word [r10], ' '
-    jne .tnext
-    cmp word [r10+2], '-'
-    jne .tnext
-    movzx eax, word [r10+4]
+    mov rcx, rax
+    lea rdx, [rsp+30h]
+    call CommandLineToArgvW
+    test rax, rax
+    jz .notest
+    mov r8, rax
+    mov ecx, [rsp+30h]
+    mov edx, 1
+.next_test_arg:
+    cmp edx, ecx
+    jge .no_test_arg
+    mov r9, [r8+rdx*8]
+    inc edx
+    cmp word [r9], '-'
+    jne .next_test_arg
+    movzx eax, word [r9+2]
+    test eax, eax
+    jz .next_test_arg
+    cmp word [r9+4], 0
+    jne .next_test_arg
     or eax, 20h
 %ifdef PE_NATIVE
     cmp eax, 'g'
-    je .gtest
+    je .test_arg_done
     cmp eax, 'v'
-    je .vtest
+    je .test_arg_done
 %endif
     cmp eax, 't'
-    jne .tnext
-    movzx eax, word [r10+6]
-    test eax, eax
-    jz .dotest
-    cmp eax, ' '
+    je .test_arg_done
+    jmp .next_test_arg
+.no_test_arg:
+    xor eax, eax
+.test_arg_done:
+    mov [rsp+30h], eax
+    mov rcx, r8
+    call LocalFree
+    mov eax, [rsp+30h]
+    cmp eax, 't'
     je .dotest
-.tnext:
-    add r10, 2
-    jmp .tscan
 %ifdef PE_NATIVE
-.vtest:
-    movzx eax, word [r10+6]
-    test eax, eax
-    jz .verify_kernels
-    cmp eax, ' '
-    jne .tnext
+    cmp eax, 'v'
+    je .verify_kernels
+    cmp eax, 'g'
+    jne .notest
+    mov dword [pe_gui_test], 1
+    jmp .notest
 .verify_kernels:
     call pe_verify_kernels
     xor ecx, ecx
     test eax, eax
     setz cl
     call ExitProcess
-.gtest:
-    movzx eax, word [r10+6]
-    test eax, eax
-    jz .gui_test_selected
-    cmp eax, ' '
-    jne .tnext
-.gui_test_selected:
-    mov dword [pe_gui_test], 1
+%else
     jmp .notest
 %endif
 .dotest:

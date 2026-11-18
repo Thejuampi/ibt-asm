@@ -20,6 +20,7 @@ PE_API TlsSetValue
 PE_API SetThreadPriority
 PE_API GetCurrentThread
 PE_API GetCommandLineW
+PE_API LocalFree
 PE_API GetProcessHeap
 PE_API HeapAlloc
 PE_API HeapFree
@@ -129,6 +130,7 @@ PE_API WakeByAddressAll
 PE_END_DLL
 
 PE_DLL shell32, 'SHELL32.dll'
+PE_API CommandLineToArgvW
 PE_API ShellExecuteW
 PE_END_DLL
 

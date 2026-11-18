@@ -45,7 +45,9 @@ For Linux x86-64 with X11, download
 run `chmod +x IntelBurnTest-linux-x64`, then `./IntelBurnTest-linux-x64`.
 The Linux executable requires glibc, X11, and Xft at runtime.
 
-The v3.3.0 Windows executable is unsigned, so Windows SmartScreen may display a warning on first launch.
+The v3.3.0 Windows executable is unsigned. Microsoft Defender SmartScreen can
+warn at download or launch while the file builds reputation for its SHA-256 hash.
+The checksums below identify the published files.
 
 ```text
 Windows: IntelBurnTest.exe        98,304 bytes
@@ -211,11 +213,11 @@ make
 ./unix/IntelBurnTest
 ```
 
-NASM creates `unix/IntelBurnTest` directly and `make` runs its headless numerical
-self-test and checks its X11 and Xft imports. `make check-gui` also opens and
-checks the interface when an X11 display is available. The direct NASM output is
-uncompressed; it does not retain the former 25 KiB packed-size limit. See
-[`unix/README.md`](unix/README.md) for Unix-specific details.
+NASM creates the uncompressed `unix/IntelBurnTest` directly. The ELF loader
+allocates and clears the zero-initialized state in memory. `make` runs the
+headless numerical self-test and checks the X11 and Xft imports.
+`make check-gui` opens and checks the interface on an X11 display. See
+[`unix/README.md`](unix/README.md) for the Unix build checks.
 
 ### Bootable UEFI port
 
@@ -251,7 +253,7 @@ ibt_lpk.inc         test orchestration and numerical routines
 bench_lib.inc       optimized matrix kernels
 res/                source and compiled graphical assets
 tools/              asset generation, alignment checks, size reports, and QA
-unix/               Linux/x86-64 X11 frontend, build, and size gate
+unix/               Linux/x86-64 X11 frontend and build
 uefi/               OS-free x64 UEFI frontend, USB installer, and boot tests
 reference/c/        C equivalent of every assembly procedure (reading map)
 ```

@@ -5,8 +5,23 @@ default rel
 
 section .header start=0 vstart=PE_BASE
     db 'MZ'
+    dw dos_end - $$, 1, 0, 4, 0x10, 0xffff
+    dw 0, 0x100, 0, 0, 0, 0x40, 0
     times 0x3c - ($ - $$) db 0
-    dd pe_header - PE_BASE
+    dd pe_header - $$
+bits 16
+dos_start:
+    push cs
+    pop ds
+    mov dx, dos_message - dos_start
+    mov ah, 9
+    int 0x21
+    mov ax, 0x4c01
+    int 0x21
+dos_message: db 'This program cannot be run in DOS mode.', 13, 10, '$'
+dos_end:
+bits 64
+align 8, db 0
 pe_header:
     db 'PE', 0, 0
     dw 0x8664, 4
@@ -14,7 +29,8 @@ pe_header:
     dw 0xf0, 0x0022
     dw 0x20b
     db 0, 0
-    dd pe_text_raw_size, pe_data_raw_size, pe_bss_end - pe_bss_start
+    dd pe_text_raw_size, pe_data_raw_size + pe_rsrc_raw_size + pe_reloc_raw_size
+    dd pe_bss_end - pe_bss_start
     dd start - PE_BASE, pe_text_start - PE_BASE
     dq PE_BASE
     dd 0x1000, 0x200
@@ -34,7 +50,7 @@ pe_header:
     times 10 dq 0
 
     db '.text', 0, 0, 0
-    dd pe_text_raw_size, pe_text_start - PE_BASE
+    dd pe_text_size, pe_text_start - PE_BASE
     dd pe_text_raw_size, 0x400
     dd 0, 0
     dw 0, 0
@@ -614,7 +630,8 @@ pe_bss_end:
 section .reloc
 pe_reloc_end:
 
-pe_text_raw_size equ ((((pe_text_primary_end - pe_text_start + 15) & ~15) + pe_text_end - pe_v3text_start + 0x1ff) & ~0x1ff)
+pe_text_size equ ((pe_text_primary_end - pe_text_start + 15) & ~15) + pe_text_end - pe_v3text_start
+pe_text_raw_size equ (pe_text_size + 0x1ff) & ~0x1ff
 pe_data_init_size equ (((((pe_data_primary_end - pe_data_start + 15) & ~15) + pe_v3str_end - pe_v3str_start + 7) & ~7) + pe_data_initialized_end - pe_idata_start)
 pe_data_virtual_size equ ((pe_data_init_size + 63) & ~63) + pe_bss_end - pe_bss_start
 pe_data_raw_size equ (pe_data_init_size + 0x1ff) & ~0x1ff
