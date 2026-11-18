@@ -26,31 +26,37 @@ times 0x3c-($-$$) db 0
 dd pe_header-$$
 pe_header:
 db 'PE',0,0
-dw 0x8664,1
+dw 0x8664,2
 dd 0,0,0
 dw 0xf0,0x22
 dw 0x20b
 db 0,0
-dd 0,0,0
-dd _start-TEST_BASE,0x1000
+dd text_raw_size,imports_raw_size,0
+dd _start-TEST_BASE,text_start-TEST_BASE
 dq TEST_BASE
 dd 0x1000,0x200
 dw 6,0,0,0,6,0
 dd 0
-dd 0x1000 + ((file_end-text_start+0xfff)&~0xfff)
+dd imports-TEST_BASE + ((imports_data_end-imports+0xfff)&~0xfff)
 dd 0x200,0
 dw 3,0x100
 dq 0x100000,0x1000,0x100000,0x1000
 dd 0,16
 dd 0,0
-dd imports-TEST_BASE,40
+dd imports-TEST_BASE,imports_end-imports
 times 14 dq 0
 db '.text',0,0,0
-dd file_end-text_start,0x1000
-dd (file_end-text_start+0x1ff)&~0x1ff,0x200
+dd text_end-text_start,text_start-TEST_BASE
+dd text_raw_size,0x200
 dd 0,0
 dw 0,0
-dd 0xe0000020
+dd 0x60000020
+db '.idata',0,0
+dd imports_data_end-imports,imports-TEST_BASE
+dd imports_raw_size,0x200+text_raw_size
+dd 0,0
+dw 0,0
+dd 0xc0000040
 times 0x200-($-$$) db 0
 section .text start=0x200 vstart=TEST_BASE+0x1000
 %endif
@@ -243,18 +249,23 @@ jmp16_end:
 target_a: db 0
 target_b: db 0
 target_wrong: db 0
-%ifndef KERNEL_TEST_ELF
-align 8,db 0
+%ifdef KERNEL_TEST_ELF
+file_end:
+%else
+text_end:
+section .idata follows=.text vfollows=.text align=512 valign=4096
 imports:
 dd int_table-TEST_BASE,0,0,dll_name-TEST_BASE,iat-TEST_BASE
 times 5 dd 0
+imports_end:
 int_table: dq hint_name-TEST_BASE,0
 iat: dq hint_name-TEST_BASE,0
 dll_name: db 'KERNEL32.dll',0
+align 2,db 0
 hint_name: dw 0
 db 'ExitProcess',0
-%endif
-file_end:
-%ifndef KERNEL_TEST_ELF
-times (-(file_end-text_start)) & 0x1ff db 0
+imports_data_end:
+text_raw_size equ (text_end-text_start+0x1ff)&~0x1ff
+imports_raw_size equ (imports_data_end-imports+0x1ff)&~0x1ff
+times imports_raw_size-(imports_data_end-imports) db 0
 %endif
