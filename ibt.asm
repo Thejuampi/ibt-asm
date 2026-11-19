@@ -563,117 +563,149 @@ overlapRuns resd 1
 alignb 8
 hOverlapTip resq 1
 
+; Native PE literals use Latin-1 bytes. Pass non-ASCII code points as integers.
+%macro UI_TEXT 2-*
+%ifdef PE_NATIVE
+    section .v3str
+%%bytes:
+    db %{2:-1}
+%%end:
+    section .bss
+%1: resw %%end - %%bytes
+    section UI_TEXT_SECTION
+%else
+%1:
+    %rep %0 - 1
+        %rotate 1
+        %ifstr %1
+            dw __utf16le__(%1)
+        %else
+            dw %1
+        %endif
+    %endrep
+%endif
+%endmacro
+
+%ifdef PE_NATIVE
+section .v3str
+ui_text_bytes:
+section .bss
+alignb 2
+ui_text_wide:
+%endif
+
+%define UI_TEXT_SECTION .data
 section .data
-szClass     dw __utf16le__("MinWndClassX"),0
-szDlgClass  dw __utf16le__("IBTDarkDialog"),0
-szTitle     dw __utf16le__("IntelBurnTest - by Thejuampi [Idle]"),0,0
-szFail      dw __utf16le__("RegisterClassEx failed"),0
-szFail2     dw __utf16le__("CreateWindowEx failed"),0
-szCap       dw __utf16le__("IntelBurnTest"),0
-szBtn       dw __utf16le__("BUTTON"),0
-szStatic    dw __utf16le__("STATIC"),0
-szEdit      dw __utf16le__("EDIT"),0
-szCombo     dw __utf16le__("COMBOBOX"),0
-szList      dw __utf16le__("LISTBOX"),0
+UI_TEXT szClass, "MinWndClassX",0
+UI_TEXT szDlgClass, "IBTDarkDialog",0
+UI_TEXT szTitle, "IntelBurnTest - by Thejuampi [Idle]",0,0
+UI_TEXT szFail, "RegisterClassEx failed",0
+UI_TEXT szFail2, "CreateWindowEx failed",0
+UI_TEXT szCap, "IntelBurnTest",0
+UI_TEXT szBtn, "BUTTON",0
+UI_TEXT szStatic, "STATIC",0
+UI_TEXT szEdit, "EDIT",0
+UI_TEXT szCombo, "COMBOBOX",0
+UI_TEXT szList, "LISTBOX",0
 szEmpty     dw 0
-szFace      dw __utf16le__("Segoe UI"),0
-szSettings  dw __utf16le__("TEST CONFIGURATION"),0
-szOutput    dw __utf16le__("RESULTS"),0
-szMode      dw __utf16le__("Mode:"),0
-szBits      dw __utf16le__("64-bit"),0
-szBitsAvx2  dw __utf16le__("64-bit AVX2"),0
-szBitsAvx   dw __utf16le__("64-bit AVX"),0
-szBitsSse2  dw __utf16le__("64-bit SSE2"),0
-szStress    dw __utf16le__("Stress:"),0
-szMB        dw __utf16le__("MB"),0
-szTimes     dw __utf16le__("Times to run:"),0
-szRam       dw __utf16le__("Free RAM:"),0
-szLog       dw __utf16le__("Output results to results.log"),0
-szThreads   dw __utf16le__("Threads:"),0
-szStart     dw __utf16le__("&Start"),0
-szStop      dw __utf16le__("&Stop"),0
-szAbout     dw __utf16le__("&About"),0
-szOK        dw __utf16le__("OK"),0
-szCancel    dw __utf16le__("Cancel"),0
-szDarkMode  dw __utf16le__("DarkMode_Explorer"),0
-szDarkCfd   dw __utf16le__("DarkMode_CFD"),0
-szUxTheme   dw __utf16le__("uxtheme.dll"),0
+UI_TEXT szFace, "Segoe UI",0
+UI_TEXT szSettings, "TEST CONFIGURATION",0
+UI_TEXT szOutput, "RESULTS",0
+UI_TEXT szMode, "Mode:",0
+UI_TEXT szBits, "64-bit",0
+UI_TEXT szBitsAvx2, "64-bit AVX2",0
+UI_TEXT szBitsAvx, "64-bit AVX",0
+UI_TEXT szBitsSse2, "64-bit SSE2",0
+UI_TEXT szStress, "Stress:",0
+UI_TEXT szMB, "MB",0
+UI_TEXT szTimes, "Times to run:",0
+UI_TEXT szRam, "Free RAM:",0
+UI_TEXT szLog, "Output results to results.log",0
+UI_TEXT szThreads, "Threads:",0
+UI_TEXT szStart, "&Start",0
+UI_TEXT szStop, "&Stop",0
+UI_TEXT szAbout, "&About",0
+UI_TEXT szOK, "OK",0
+UI_TEXT szCancel, "Cancel",0
+UI_TEXT szDarkMode, "DarkMode_Explorer",0
+UI_TEXT szDarkCfd, "DarkMode_CFD",0
+UI_TEXT szUxTheme, "uxtheme.dll",0
 szChev      dw 25BEh,0
-szFreeze    dw __utf16le__("THERMAL LOAD"),0
-szTime      dw __utf16le__("TIME (S)"),0
-szSpeed     dw __utf16le__("SPEED (GFLOPS)"),0
-szResults   dw __utf16le__("RESIDUAL"),0
-szTen       dw __utf16le__("10"),0
-sz1024      dw __utf16le__("1024"),0
-szStd       dw __utf16le__("Standard"),0
-szHigh      dw __utf16le__("High"),0
-szVHigh     dw __utf16le__("Very High"),0
-szMax       dw __utf16le__("Maximum"),0
-szCustom    dw __utf16le__("Custom"),0
-szAll       dw __utf16le__("All"),0
-szAuto      dw __utf16le__("Auto"),0
-szT1        dw __utf16le__("1"),0
-szT2        dw __utf16le__("2"),0
-szT3        dw __utf16le__("3"),0
-szT4        dw __utf16le__("4"),0
-szT6        dw __utf16le__("6"),0
-szT8        dw __utf16le__("8"),0
-szT12       dw __utf16le__("12"),0
-szT16       dw __utf16le__("16"),0
-szT24       dw __utf16le__("24"),0
-szT32       dw __utf16le__("32"),0
-szT48       dw __utf16le__("48"),0
-szT64       dw __utf16le__("64"),0
-szT96       dw __utf16le__("96"),0
-szT128      dw __utf16le__("128"),0
-szCopy      dw __utf16le__("Copy"),0
-szCopyAll   dw __utf16le__("Copy All"),0
-szXtreme    dw __utf16le__("Xtreme Stress Mode"),0
-szDbg       dw __utf16le__("Enable Debug Logging"),0
-szIdle      dw __utf16le__("Idle"),0
-szPreparing dw __utf16le__("Preparing test data"),0
-szFinished  dw __utf16le__("Finished"),0
-szStopped   dw __utf16le__("Stopped"),0
-szStopping  dw __utf16le__("Stopping"),0
-szFailure   dw __utf16le__("Failure"),0
-szTitleFmt  dw __utf16le__("IntelBurnTest - by Thejuampi [%s]"),0,0
-szTitleProg dw __utf16le__("IntelBurnTest - by Thejuampi [Running] (%u of %u Completed)"),0,0
-szRamFmt    dw __utf16le__("%u MB"),0
-szNumFmt    dw __utf16le__("%u"),0
-szAboutCap  dw __utf16le__("About"),0
-szAboutTxt  dw __utf16le__("IntelBurnTest"),13,10
-            dw __utf16le__("by Thejuampi"),13,10
-            dw __utf16le__("original by AgentGOD"),13,10
-            dw __utf16le__("native rewrite, no .NET"),13,10,13,10
-            dw __utf16le__("In-process AVX2 HPL. No linpack.exe, no DLLs."),13,10
-            dw __utf16le__("Adequate cooling is required, especially the CPU."),0
-szMemCap    dw __utf16le__("IntelBurnTest - Error"),0
-szMemErr    dw __utf16le__("Not enough available RAM. Reduce the memory setting or turn off Overlap runs."),0
-szAllocErr  dw __utf16le__("Cannot start the test with these memory and thread settings. Adjust them and try again."),0
-szCritCap   dw __utf16le__("IntelBurnTest - Critical Error"),0
-szFailTxt   dw __utf16le__("A numerical check failed. This test did not pass."),13,10
-            dw __utf16le__("Please check your cooling system and/or lower your overclock."),13,10,13,10
-            dw __utf16le__("Test executed for %u seconds."),0
-szOkCap     dw __utf16le__("IntelBurnTest - Success"),0
-szOkTxt     dw __utf16le__("No numerical errors were detected in the completed test."),13,10,13,10
-            dw __utf16le__("Test completed successfully in %u seconds."),0
-szDieTxt    dw __utf16le__("WARNING! The test stopped unexpectedly."),13,10,13,10
-            dw __utf16le__("Test executed for %u seconds."),0
-szXtremeAsk dw __utf16le__("Xtreme Stress Mode may cause the CPU to heat up more. Windows may not be usable."),13,10,13,10
-            dw __utf16le__("Enable Xtreme Stress Mode?"),0
-szLogHdr    dw __utf16le__("----------------------------"),13,10
-            dw __utf16le__("Created by Thejuampi"),13,10
-            dw __utf16le__("Stress Level: %s (%u MB)"),13,10
-            dw __utf16le__("Time (s)    Speed (GFlops)    Result"),13,10,0
-szOpenVerb  dw __utf16le__("open"),0
-szCoffeeUrl dw __utf16le__("https://buymeacoffee.com/thejuampi"),0
-szLogLine   dw __utf16le__("%s    %s    %s"),13,10,0
-szLogEnd    dw __utf16le__("Test Result: %s"),13,10
-            dw __utf16le__("Processor: %s"),13,10,0
-szSuccessA  dw __utf16le__("No numerical errors detected in the completed test."),0
-szFailA     dw __utf16le__("Failure."),0
-szStoppedA  dw __utf16le__("Stopped by user."),0
-szLogName   dw __utf16le__("results.log"),0
+UI_TEXT szFreeze, "THERMAL LOAD",0
+UI_TEXT szTime, "TIME (S)",0
+UI_TEXT szSpeed, "SPEED (GFLOPS)",0
+UI_TEXT szResults, "RESIDUAL",0
+UI_TEXT szTen, "10",0
+UI_TEXT sz1024, "1024",0
+UI_TEXT szStd, "Standard",0
+UI_TEXT szHigh, "High",0
+UI_TEXT szVHigh, "Very High",0
+UI_TEXT szMax, "Maximum",0
+UI_TEXT szCustom, "Custom",0
+UI_TEXT szAll, "All",0
+UI_TEXT szAuto, "Auto",0
+UI_TEXT szT1, "1",0
+UI_TEXT szT2, "2",0
+UI_TEXT szT3, "3",0
+UI_TEXT szT4, "4",0
+UI_TEXT szT6, "6",0
+UI_TEXT szT8, "8",0
+UI_TEXT szT12, "12",0
+UI_TEXT szT16, "16",0
+UI_TEXT szT24, "24",0
+UI_TEXT szT32, "32",0
+UI_TEXT szT48, "48",0
+UI_TEXT szT64, "64",0
+UI_TEXT szT96, "96",0
+UI_TEXT szT128, "128",0
+UI_TEXT szCopy, "Copy",0
+UI_TEXT szCopyAll, "Copy All",0
+UI_TEXT szXtreme, "Xtreme Stress Mode",0
+UI_TEXT szDbg, "Enable Debug Logging",0
+UI_TEXT szIdle, "Idle",0
+UI_TEXT szPreparing, "Preparing test data",0
+UI_TEXT szFinished, "Finished",0
+UI_TEXT szStopped, "Stopped",0
+UI_TEXT szStopping, "Stopping",0
+UI_TEXT szFailure, "Failure",0
+UI_TEXT szTitleFmt, "IntelBurnTest - by Thejuampi [%s]",0,0
+UI_TEXT szTitleProg, "IntelBurnTest - by Thejuampi [Running] (%u of %u Completed)",0,0
+UI_TEXT szRamFmt, "%u MB",0
+UI_TEXT szNumFmt, "%u",0
+UI_TEXT szAboutCap, "About",0
+UI_TEXT szAboutTxt, "IntelBurnTest",13,10, \
+    "by Thejuampi",13,10, \
+    "original by AgentGOD",13,10, \
+    "native rewrite, no .NET",13,10,13,10, \
+    "In-process AVX2 HPL. No linpack.exe, no DLLs.",13,10, \
+    "Adequate cooling is required, especially the CPU.",0
+UI_TEXT szMemCap, "IntelBurnTest - Error",0
+UI_TEXT szMemErr, "Not enough available RAM. Reduce the memory setting or turn off Overlap runs.",0
+UI_TEXT szAllocErr, "Cannot start the test with these memory and thread settings. Adjust them and try again.",0
+UI_TEXT szCritCap, "IntelBurnTest - Critical Error",0
+UI_TEXT szFailTxt, "A numerical check failed. This test did not pass.",13,10, \
+    "Please check your cooling system and/or lower your overclock.",13,10,13,10, \
+    "Test executed for %u seconds.",0
+UI_TEXT szOkCap, "IntelBurnTest - Success",0
+UI_TEXT szOkTxt, "No numerical errors were detected in the completed test.",13,10,13,10, \
+    "Test completed successfully in %u seconds.",0
+UI_TEXT szDieTxt, "WARNING! The test stopped unexpectedly.",13,10,13,10, \
+    "Test executed for %u seconds.",0
+UI_TEXT szXtremeAsk, "Xtreme Stress Mode may cause the CPU to heat up more. Windows may not be usable.",13,10,13,10, \
+    "Enable Xtreme Stress Mode?",0
+UI_TEXT szLogHdr, "----------------------------",13,10, \
+    "Created by Thejuampi",13,10, \
+    "Stress Level: %s (%u MB)",13,10, \
+    "Time (s)    Speed (GFlops)    Result",13,10,0
+UI_TEXT szOpenVerb, "open",0
+UI_TEXT szCoffeeUrl, "https://buymeacoffee.com/thejuampi",0
+UI_TEXT szLogLine, "%s    %s    %s",13,10,0
+UI_TEXT szLogEnd, "Test Result: %s",13,10, \
+    "Processor: %s",13,10,0
+UI_TEXT szSuccessA, "No numerical errors detected in the completed test.",0
+UI_TEXT szFailA, "Failure.",0
+UI_TEXT szStoppedA, "Stopped by user.",0
+UI_TEXT szLogName, "results.log",0
 szTab       dw 9,0
 szCRLF      dw 13,10,0
 flameDelay  db 1,2,2,1,2,1,2,2
@@ -712,61 +744,85 @@ uiClasses:
     dd szEdit - uiControls
     dd szList - uiControls
 
-; Keep the validated data/BSS boundary stable. Numerical state keeps the same
-; virtual addresses even as the presentation layer evolves.
-szOutputV3 dw __utf16le__("STABILITY MONITOR"),0
+UI_TEXT szOutputV3, "STABILITY MONITOR",0
+%ifndef PE_NATIVE
+; Keep the legacy COFF data layout stable.
 times 011ECh-($-$$) db 0
+%endif
 
 %ifdef PE_NATIVE
+%undef UI_TEXT_SECTION
+%define UI_TEXT_SECTION .v3str
 section .v3str
 %else
 section .v3str rdata align=16
 %endif
-szRunAgain  dw __utf16le__("&Run again"),0
-szCardHead  dw __utf16le__("RUN PROGRESS"),0
-szReady     dw __utf16le__("READY"),0
-szRunning   dw __utf16le__("RUNNING"),0
-szPassed    dw __utf16le__("NO NUMERICAL ERRORS"),0
-szMatrixPending dw __utf16le__("Matrix size set at start"),0
-szOverlap dw __utf16le__("Overlap runs (~2× memory)"),0
-szOverlapHint dw __utf16le__("Start the next solve while checking the previous result. Uses about twice the RAM at the same matrix size. Maximum reduces the matrix size to fit. Any failed check stops the test; a run counts only after validation. Requires 3 or more threads and at least 2 runs."),0
-szTooltipClass dw __utf16le__("tooltips_class32"),0
-szMatrixInfoFmt dw __utf16le__("Matrices: %u | N=%u"),0
-szMatrixLogFmt dw __utf16le__("Overlap runs: on; matrices: %u; N=%u; selected size per problem: %u MB."),13,10
-    dw __utf16le__("Uses about twice the RAM. Every result is fully validated before it counts."),13,10
-    dw __utf16le__("Speed: LU work / factor-and-solve time."),13,10,0
-szMatrixSingleLogFmt dw __utf16le__("Matrices: %u; N=%u; selected size: %u MB"),13,10
-    dw __utf16le__("Speed: LU work / factor-and-solve time."),13,10,0
-szFailed    dw __utf16le__("FAILED"),0
-szStoppedCard dw __utf16le__("STOPPED"),0
-szRunFmt    dw __utf16le__("RUN %u / %u"),0
-szReadyStart dw __utf16le__("READY TO START"),0
-szWarming   dw __utf16le__("WARMING UP"),0
-szDash      dw __utf16le__("--"),0
-szGflops    dw __utf16le__("GFLOPS"),0
-szLastRun   dw __utf16le__("LAST RUN"),0
-szSecondsFmt dw __utf16le__("%s s"),0
-szSignature dw __utf16le__("STABILITY SIGNATURE"),0
-szAwaiting  dw __utf16le__("Waiting for the first completed run"),0
-szReference dw __utf16le__("REFERENCE CAPTURED"),0
-szMatchFmt  dw __utf16le__("MATCH - %u / %u CONSISTENT"),0
-szPassMatch dw __utf16le__("ALL RUNS MATCH"),0
-szMismatch  dw __utf16le__("POSSIBLE SYSTEM INSTABILITY"),0
-szNoRuns    dw __utf16le__("No completed runs yet."),0
-szSummaryFmt dw __utf16le__("Run %u/%u | %s GFLOPS | residual %s"),0
-szCopySummary dw __utf16le__("Copy summary"),0
+UI_TEXT szRunAgain, "&Run again",0
+UI_TEXT szCardHead, "RUN PROGRESS",0
+UI_TEXT szReady, "READY",0
+UI_TEXT szRunning, "RUNNING",0
+UI_TEXT szPassed, "NO NUMERICAL ERRORS",0
+UI_TEXT szMatrixPending, "Matrix size set at start",0
+UI_TEXT szOverlap, "Overlap runs (~2",0xd7," memory)",0
+UI_TEXT szOverlapHint, "Start the next solve while checking the previous result. Uses about twice the RAM at the same matrix size. Maximum reduces the matrix size to fit. Any failed check stops the test; a run counts only after validation. Requires 3 or more threads and at least 2 runs.",0
+UI_TEXT szTooltipClass, "tooltips_class32",0
+UI_TEXT szMatrixInfoFmt, "Matrices: %u | N=%u",0
+UI_TEXT szMatrixLogFmt, "Overlap runs: on; matrices: %u; N=%u; selected size per problem: %u MB.",13,10, \
+    "Uses about twice the RAM. Every result is fully validated before it counts.",13,10, \
+    "Speed: LU work / factor-and-solve time.",13,10,0
+UI_TEXT szMatrixSingleLogFmt, "Matrices: %u; N=%u; selected size: %u MB",13,10, \
+    "Speed: LU work / factor-and-solve time.",13,10,0
+UI_TEXT szFailed, "FAILED",0
+UI_TEXT szStoppedCard, "STOPPED",0
+UI_TEXT szRunFmt, "RUN %u / %u",0
+UI_TEXT szReadyStart, "READY TO START",0
+UI_TEXT szWarming, "WARMING UP",0
+UI_TEXT szDash, "--",0
+UI_TEXT szGflops, "GFLOPS",0
+UI_TEXT szLastRun, "LAST RUN",0
+UI_TEXT szSecondsFmt, "%s s",0
+UI_TEXT szSignature, "STABILITY SIGNATURE",0
+UI_TEXT szAwaiting, "Waiting for the first completed run",0
+UI_TEXT szReference, "REFERENCE CAPTURED",0
+UI_TEXT szMatchFmt, "MATCH - %u / %u CONSISTENT",0
+UI_TEXT szPassMatch, "ALL RUNS MATCH",0
+UI_TEXT szMismatch, "POSSIBLE SYSTEM INSTABILITY",0
+UI_TEXT szNoRuns, "No completed runs yet.",0
+UI_TEXT szSummaryFmt, "Run %u/%u | %s GFLOPS | residual %s",0
+UI_TEXT szCopySummary, "Copy summary",0
 
+%ifdef PE_NATIVE
+ui_text_bytes_end:
+%endif
+%undef UI_TEXT_SECTION
+%unmacro UI_TEXT 2-*
 section .text
 global start
 
+%assign APP_CHECKS SELFTEST
+%ifdef PE_NATIVE
+%assign APP_CHECKS 1
+%endif
 PROC_FRAME_ALIGNED start, 80h
+%ifdef PE_NATIVE
+    cld
+    lea rsi, [ui_text_bytes]
+    lea rdi, [ui_text_wide]
+    mov ecx, ui_text_bytes_end - ui_text_bytes
+    xor eax, eax
+.widen_text:
+    lodsb
+    stosw
+    dec ecx
+    jnz .widen_text
+%endif
     xor ecx, ecx
     call GetModuleHandleW
     mov [hInst], rax
     call lp_isa_probe
     call TlsAlloc
     mov [lpTlsIdx], eax
-%if SELFTEST
+%if APP_CHECKS
     call GetCommandLineW
     mov rcx, rax
     lea rdx, [rsp+30h]
@@ -792,8 +848,6 @@ PROC_FRAME_ALIGNED start, 80h
 %ifdef PE_NATIVE
     cmp eax, 'g'
     je .test_arg_done
-    cmp eax, 'v'
-    je .test_arg_done
 %endif
     cmp eax, 't'
     je .test_arg_done
@@ -808,18 +862,10 @@ PROC_FRAME_ALIGNED start, 80h
     cmp eax, 't'
     je .dotest
 %ifdef PE_NATIVE
-    cmp eax, 'v'
-    je .verify_kernels
     cmp eax, 'g'
     jne .notest
     mov dword [pe_gui_test], 1
     jmp .notest
-.verify_kernels:
-    call pe_verify_kernels
-    xor ecx, ecx
-    test eax, eax
-    setz cl
-    call ExitProcess
 %else
     jmp .notest
 %endif
@@ -832,7 +878,11 @@ PROC_FRAME_ALIGNED start, 80h
     call ExitProcess
 .test_resources_ok:
 %endif
+%if SELFTEST
     call test_main
+%else
+    call pe_app_selftest
+%endif
 .notest:
 %endif
     cld
@@ -940,9 +990,11 @@ PROC_FRAME_ALIGNED start, 80h
     je .gui_test_failed
     cmp qword [hCoffeeBmp], 0
     je .gui_test_failed
+%if SELFTEST
     call pe_check_result_fields
     test eax, eax
     jz .gui_test_failed
+%endif
     mov rcx, [hMain]
     call DestroyWindow
     xor ecx, ecx
@@ -1029,15 +1081,18 @@ PROC_FRAME ui_init, 80h, rbx, rsi
     ENDPROC_SAVED 80h, rbx, rsi
 
 %include "ibt_ui.inc"
+%ifdef PE_NATIVE
+%include "ibt_bitmaps.inc"
+%endif
 %include "ibt_theme.inc"
 
-; UI experiments may release space before the numerical engine. Increase this
-; compile-time padding by the exact released byte count to preserve the validated
-; benchmark address without introducing a location-dependent assembler expression.
+%ifndef PE_NATIVE
+; Keep the older COFF benchmark addresses stable.
 %assign UI_BENCH_PAD_BYTES 295
 %rep UI_BENCH_PAD_BYTES
     db 090h
 %endrep
+%endif
 
 %ifdef KERNEL_REFERENCE
 %include "reference/numerical/ibt_lpk.inc"
@@ -1530,6 +1585,7 @@ PROC_FRAME flame_sub, 0A8h, rbx, r12, r13
 ; Retain the legacy kernel imports and .text extent so the linker keeps the
 ; import thunks used by the numerical engine at their validated addresses.
 ; This block is never called.
+%ifndef PE_NATIVE
 compat_import_layout:
     call GetProcessHeap
     call HeapAlloc
@@ -1539,3 +1595,4 @@ compat_import_layout:
 ; Preserve the legacy .text extent so the linker emits import thunks at the
 ; validated addresses referenced by the numerical engine.
 times 20 db 090h
+%endif

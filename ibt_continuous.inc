@@ -6,6 +6,11 @@
 %ifdef CONT_ASYNC_RESID
 %include "ibt_verify_state.inc"
 %endif
+%ifdef CONT_PIPELINE
+%ifdef IBT_COMPACT_PIPELINE
+%define CONT_FILL_ONLY 1
+%endif
+%endif
 
 C_N       equ 0
 C_NTHR    equ 8
@@ -103,10 +108,16 @@ contA:
 contB:
     CONT_PTR dual_lpN, dual_lpNthr, dual_lpA, dual_lpX, dual_lpResidX
     CONT_PTR dual_lpTmpT, dual_lpTmpR, dual_lpTmpN
+%ifdef CONT_FILL_ONLY
+    CONT_PTR dual_lp_alloc_n, dual_lp_fill, 0, 0, 0, dual_lp_free
+    CONT_PTR dual_lpNext, dual_lpJob, dual_lpGM, dual_lpGN, dual_lp_fill_cols, 0
+    CONT_PTR 0, 0, 0, 0, dual_lp_par
+%else
     CONT_PTR dual_lp_alloc_n, dual_lp_fill, dual_lp_dgetrf, dual_lp_dgetrs
     CONT_PTR dual_lp_resid, dual_lp_free
     CONT_PTR dual_lpNext, dual_lpJob, dual_lpGM, dual_lpGN, dual_lp_job_run, dual_lp_steal
     CONT_PTR dual_lpGB, dual_lpGC, dual_lpGLDA, dual_lp_pack_b_all, dual_lp_par
+%endif
     CONT_PTR dual_lpB
 %ifndef CONT_PIPELINE
 contC:
@@ -1246,6 +1257,9 @@ cont_burn_thread:
     jz .alloc_bad
 %endif
 .allocated:
+%ifdef CONT_PIPELINE
+    call cont_pipeline_capture
+%endif
     mov dword [contActive], 1
     xor ebx, ebx
 .pool:
@@ -1282,9 +1296,15 @@ cont_burn_thread:
     je .clock
     xor r12d, r12d
 .warm:
+%ifdef CONT_PIPELINE
+    lea rbx, [contA]
+    mov ecx, r12d
+    call cont_bind_matrix
+%else
     imul eax, r12d, C_DESC_BYTES
     lea rbx, [contA]
     add rbx, rax
+%endif
     call cont_warm
     test eax, eax
     jnz .finish
@@ -1393,6 +1413,9 @@ cont_burn_thread:
     je .release
     mov dword [failed], 1
 .release:
+%ifdef CONT_PIPELINE
+    call cont_pipeline_restore
+%endif
     call lp_free
     call dual_lp_free
 %ifdef CONT_ASYNC_RESID
@@ -1468,8 +1491,15 @@ cont_warm:
 %include "reference/numerical/bench_lib.inc"
 %else
 %include "ibt_dual_symbols.inc"
+%ifdef CONT_FILL_ONLY
+%define IBT_FILL_ENGINE 1
+%endif
 %include "ibt_lpk.inc"
+%ifdef IBT_FILL_ENGINE
+%undef IBT_FILL_ENGINE
+%else
 %include "bench_lib.inc"
+%endif
 %endif
 dual_core_end:
 %ifdef KERNEL_REFERENCE
@@ -1521,3 +1551,4 @@ section .text
 %ifdef CONT_PIPELINE
 %include "ibt_pipeline.inc"
 %endif
+%undef CONT_FILL_ONLY

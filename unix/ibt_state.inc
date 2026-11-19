@@ -219,11 +219,13 @@ logHeaderLen  equ $-logHeader
 logOverlap db 'Overlap runs: on; same matrix size, about twice the RAM; full checks before counting.',10
 logOverlapLen equ $-logOverlap
 
+%ifndef ELF_NATIVE
 align 4
 flameBmp:
     incbin "../res/flame4.bmp"
 coffeeBmp:
     incbin "../res/coffee4.bmp"
+%endif
 
 ; XRenderColor values corresponding to the seven UI text colors.
 xftRenderColors:

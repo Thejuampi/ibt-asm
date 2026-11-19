@@ -28,13 +28,15 @@ make
 ./IntelBurnTest
 ```
 
-NASM produces the uncompressed `IntelBurnTest` executable. The ELF loader
+NASM produces the uncompressed `IntelBurnTest` executable with a 43,344-byte
+limit. The ELF loader
 allocates and clears the zero-initialized state in memory. The build verifies
-53 numerical routines, checks the X11 and Xft imports, and runs a headless
+29 numerical routines and seven helper ranges in the candidate. It checks the
+X11 and Xft imports and runs a headless
 self-test with six rounds on 1024 x 1024 matrices. The self-test sets the compute
-thread count to four. A failed check stops the build. NASM checks that each
-numerical engine fits within its 16 KiB instruction-span budget. The two engines
-and their shared scheduler must fit within the combined 32 KiB budget. These limits
+thread count to four. A failed check stops the build. NASM checks the 16 KiB
+instruction-span budgets for the solver and producer and the combined 32 KiB
+budget with the scheduler. These limits
 do not establish instruction-cache residency, throughput, or package power.
 You can repeat the self-test with:
 

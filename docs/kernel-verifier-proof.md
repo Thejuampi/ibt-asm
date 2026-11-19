@@ -1,4 +1,4 @@
-# Numerical verifier: reproducible check
+# Reproduce the numerical verification
 
 Run from the repository root on Windows or Linux:
 
@@ -6,19 +6,16 @@ Run from the repository root on Windows or Linux:
 make check-verifier
 ```
 
-The target first runs the comparator's 34 instruction-level regression cases.
-It verifies the actual application, then uses NASM to assemble four
-separate applications with representation-only changes: an alternative MOV
-encoding, added NOPs, longer branch encodings, and shifted addresses. Each
-application must pass its own normal verification of all 53 routines.
+The target runs the comparator's 37 instruction-level regression cases. The
+standalone checker maps the application file as read-only data and compares
+29 numerical routines and seven helper ranges with the fixed reference. NASM
+then assembles four applications with equivalent MOV encodings, added NOPs,
+longer branches, or shifted addresses. Each variant goes through the same checker.
 
-It also assembles an application with a numerical constant changed in both
-instances. The target succeeds only when that application is rejected with the
-expected failure status. The test wrappers check that their intended MOV, NOP,
-branch and mutation changes were applied. Neither the numerical source nor the
-reference images are edited by this check.
+The target also checks an application with a changed numerical constant and
+another with a changed thread-count comparison in the producer's fill helper.
+Both must return the mismatch status. An input with an invalid image layout
+must return a separate status. The wrappers check that NASM applied each change.
 
-These tests exercise specific equivalent representations and one numerical
-mutation. They do not prove acceptance of every possible equivalent encoding,
-rejection of every possible mutation, or correctness for all numerical inputs.
-The numerical self-test is a separate check.
+The cases cover the listed representations and mutations. `make check` also
+runs the numerical self-test on the actual application executable.

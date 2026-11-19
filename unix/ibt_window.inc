@@ -150,6 +150,11 @@ assets_init:
     push rbp
     mov rbp, rsp
     sub rsp, 32
+%ifdef ELF_NATIVE
+    call desktop_bitmaps_decode
+    test eax, eax
+    jz .out
+%endif
     lea rdi, [flameBmp]
     lea rsi, [flamePixels]
     call decode_bmp4
@@ -182,6 +187,7 @@ assets_init:
     lea r9, [coffeePixels]
     call XCreateImage
     mov [coffeeImage], rax
+.out:
     leave
     ret
 

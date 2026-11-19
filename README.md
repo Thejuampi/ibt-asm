@@ -170,11 +170,12 @@ Open a command prompt with NASM and GNU Make on `PATH`, change to the repository
 make
 ```
 
-NASM writes the executable to `bin/IntelBurnTest.exe`; `make` verifies 53
-numerical routines against fixed machine-code references and runs the numerical
-and resource self-test. A failed check makes the build fail. The verifier
-normalizes supported instruction encodings, NOPs, branch targets and symbol
-addresses; see `reference/numerical/README.md` for its limits.
+NASM writes the executable to `bin/IntelBurnTest.exe`. The Windows executable
+has a 54,784-byte limit. Before installing the candidate, `make` compares its
+29 numerical routines and seven helper ranges with the fixed references and
+runs its numerical and resource self-test. A separate test executable runs
+the extended numerical and result-display checks. See
+[`reference/numerical/README.md`](reference/numerical/README.md) for the verifier.
 Running `make` again reuses the current executable when its inputs have not
 changed. Use `make -B` to force a full rebuild.
 
@@ -213,9 +214,10 @@ make
 ./unix/IntelBurnTest
 ```
 
-NASM creates the uncompressed `unix/IntelBurnTest` directly. The ELF loader
-allocates and clears the zero-initialized state in memory. `make` runs the
-headless numerical self-test and checks the X11 and Xft imports.
+NASM creates the uncompressed `unix/IntelBurnTest` directly with a 43,344-byte
+limit. The ELF loader allocates and clears the zero-initialized state in memory.
+`make` verifies the candidate's numerical code, runs its headless numerical
+self-test, and checks the X11 and Xft imports.
 `make check-gui` opens and checks the interface on an X11 display. See
 [`unix/README.md`](unix/README.md) for the Unix build checks.
 

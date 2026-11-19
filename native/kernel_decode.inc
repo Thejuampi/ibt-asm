@@ -352,6 +352,7 @@ kdec_decode:
 %define KO_LEAVE     0x1013
 %define KO_PREFETCH  0x1014
 %define KO_PAUSE     0x1015
+%define KO_SFENCE    0x1016
 %define KO_SHIFT     0x1100
 %define KO_GROUPF7   0x1200
 %define KO_GROUPFF   0x1300
@@ -701,11 +702,22 @@ kdec_decode:
     je .prefetch
     cmp eax, 0x47
     je .cmova
+    cmp eax, 0xae
+    je .sfence
     cmp eax, 0xaf
     je .imul_reg
     cmp eax, 0xc1
     je .xadd
     jmp .fail
+.sfence:
+    lea rcx, [rsp+KL_BUF+2]
+    cmp r15, rcx
+    jne .fail
+    cmp byte [r15], 0xf8
+    jne .fail
+    inc r15
+    mov dword [r14+KD_OP], KO_SFENCE
+    jmp .finish
 .nop_modrm:
     cmp dword [rsp+KL_LOCK], 0
     jne .fail

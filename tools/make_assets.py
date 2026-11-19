@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw
+import io
 import os
 import struct
 
@@ -255,12 +256,93 @@ def coffee_bmp4():
 
 def app_ico():
     master = flame_icon(256)
+    colors = list(dict.fromkeys(master.getdata()))
+    indices = {rgba: index for index, rgba in enumerate(colors)}
+    indexed = Image.new("P", master.size)
+    indexed.putpalette(bytes(channel for rgba in colors for channel in rgba[:3]))
+    indexed.putdata([indices[rgba] for rgba in master.getdata()])
+    png = io.BytesIO()
+    indexed.save(
+        png,
+        format="PNG",
+        bits=4,
+        optimize=True,
+        transparency=bytes(rgba[3] for rgba in colors),
+    )
+    data = png.getvalue()
     path = os.path.join(RES, "app.ico")
-    master.save(path, format="ICO", sizes=[(256, 256)], optimize=True)
+    with open(path, "wb") as target:
+        target.write(struct.pack("<HHHBBBBHHII", 0, 1, 1, 0, 0, 0, 0, 0, 32, len(data), 22))
+        target.write(data)
+    return path
+
+
+def desktop_bitmaps(raw_flame, raw_coffee):
+    with open(raw_flame, "rb") as flame, open(raw_coffee, "rb") as coffee:
+        source = flame.read() + coffee.read()
+    output = bytearray()
+    positions = {}
+    literal_start = 0
+    cursor = 0
+
+    def append_length(length):
+        while length >= 255:
+            output.append(255)
+            length -= 255
+        output.append(length)
+
+    def append_sequence(offset=0, length=0):
+        literals = cursor - literal_start
+        match = length - 4 if length else 0
+        output.append((min(15, literals) << 4) | min(15, match))
+        if literals >= 15:
+            append_length(literals - 15)
+        output.extend(source[literal_start:cursor])
+        if length:
+            output.extend(struct.pack("<H", offset))
+            if match >= 15:
+                append_length(match - 15)
+
+    # LZ4 blocks end with at least five literal bytes.
+    while cursor + 12 <= len(source):
+        key = source[cursor:cursor + 4]
+        match_length = 3
+        match_offset = 0
+        limit = len(source) - cursor - 5
+        for previous in reversed(positions.get(key, ())):
+            offset = cursor - previous
+            if offset > 65535:
+                break
+            length = 4
+            while length < limit and source[previous + length] == source[cursor + length]:
+                length += 1
+            if length > match_length:
+                match_length = length
+                match_offset = offset
+                if length == limit:
+                    break
+        if match_length < 4:
+            positions.setdefault(key, []).append(cursor)
+            cursor += 1
+            continue
+        append_sequence(match_offset, match_length)
+        for index in range(cursor, cursor + match_length):
+            positions.setdefault(source[index:index + 4], []).append(index)
+        cursor += match_length
+        literal_start = cursor
+
+    cursor = len(source)
+    append_sequence()
+    path = os.path.join(RES, "desktop-bitmaps.lz4")
+    with open(path, "wb") as handle:
+        handle.write(output)
     return path
 
 
 if __name__ == "__main__":
     print("icon", app_ico())
-    print("flames", *flame_assets())
-    print("coffee", coffee_bmp4())
+    rle_flame, raw_flame = flame_assets()
+    raw_coffee = coffee_bmp4()
+    print("flames", rle_flame, raw_flame)
+    print("coffee", raw_coffee)
+    print("desktop", desktop_bitmaps(raw_flame, raw_coffee))

@@ -1,6 +1,7 @@
-; Standalone regression tests for the production semantic comparator.
+; Check a candidate against the frozen numerical reference without loading it.
 ; NASM -f bin [-D KERNEL_TEST_ELF=1] -o <output> native/kernel_compare_test.asm
-; Returns 0 on success, otherwise the ordinal of the first failing case.
+; With a candidate path, exit 0 means equivalent, 1 different, 2 invalid input.
+; With no arguments, run the comparator cases and return the first failure.
 bits 64
 default rel
 %ifdef KERNEL_TEST_ELF
@@ -12,10 +13,12 @@ dw 2,0x3e
 dd 1
 dq _start,64,0
 dd 0
-dw 64,56,1,0,0,0
+dw 64,56,2,0,0,0
 dd 1,5
 dq 0,TEST_BASE,TEST_BASE
 dq file_end-TEST_BASE,file_end-TEST_BASE,0x1000
+dd 0x6474e551,6
+dq 0,0,0,0,0,16
 times 0x1000-($-$$) db 0
 section .text start=0x1000 vstart=TEST_BASE+0x1000
 %else
@@ -64,10 +67,30 @@ section .text start=0x200 vstart=TEST_BASE+0x1000
 text_start:
 _start:
 %ifdef KERNEL_TEST_ELF
-    sub rsp,0x20                 ; keep stack aligned for the comparator
+    cmp qword [rsp], 1
+    je .unit_tests
+    cmp qword [rsp], 2
+    jne .invalid
+    mov rdi, [rsp+16]
 %else
     sub rsp,0x28                 ; alignment and Windows home space
+    call [iat_GetCommandLineW]
+    mov rcx, rax
+    lea rdx, [rsp+0x20]
+    call [iat_CommandLineToArgvW]
+    test rax, rax
+    jz .invalid
+    cmp dword [rsp+0x20], 1
+    je .unit_tests
+    cmp dword [rsp+0x20], 2
+    jne .invalid
+    mov rdi, [rax+8]
 %endif
+    jmp verify_candidate
+.invalid:
+    mov ecx, 2
+    jmp test_exit
+.unit_tests:
 %assign test_no 0
 %macro CHECK 5
     %assign test_no test_no+1
@@ -118,6 +141,9 @@ _start:
     CHECK ret_mixed,ret_mixed_end,ret_mixed,ret_mixed_end,0
     CHECK call16,call16_end,call16,call16_end,0
     CHECK jmp16,jmp16_end,jmp16,jmp16_end,0
+    CHECK sfence,sfence_end,sfence,sfence_end,1
+    CHECK sfence,sfence_end,lfence,lfence_end,0
+    CHECK sfence,sfence_end,sfence_prefixed,sfence_prefixed_end,0
     xor ecx,ecx
 test_exit:
 %ifdef KERNEL_TEST_ELF
@@ -125,7 +151,7 @@ test_exit:
     mov eax,60
     syscall
 %else
-    call [rel iat]
+    call [iat_ExitProcess]
 %endif
 
 resolve:
@@ -151,6 +177,8 @@ resolve:
 
 %include 'native/kernel_decode.inc'
 %include 'native/kernel_semantic_compare.inc'
+%include 'native/kernel_symbol_resolver.inc'
+%include 'native/kernel_image_check.inc'
 
 mov_a: db 0x48,0x89,0xce
 mov_a_end:
@@ -246,6 +274,12 @@ call16: db 0x66,0xff,0xd0
 call16_end:
 jmp16: db 0x66,0xff,0xe0
 jmp16_end:
+sfence: db 0x0f,0xae,0xf8
+sfence_end:
+lfence: db 0x0f,0xae,0xe8
+lfence_end:
+sfence_prefixed: db 0x66,0x0f,0xae,0xf8
+sfence_prefixed_end:
 target_a: db 0
 target_b: db 0
 target_wrong: db 0
@@ -255,15 +289,42 @@ file_end:
 text_end:
 section .idata follows=.text vfollows=.text align=512 valign=4096
 imports:
-dd int_table-TEST_BASE,0,0,dll_name-TEST_BASE,iat-TEST_BASE
+dd 0,0,0,kernel_name-TEST_BASE,kernel_iat-TEST_BASE
+dd 0,0,0,shell_name-TEST_BASE,shell_iat-TEST_BASE
 times 5 dd 0
 imports_end:
-int_table: dq hint_name-TEST_BASE,0
-iat: dq hint_name-TEST_BASE,0
-dll_name: db 'KERNEL32.dll',0
-align 2,db 0
-hint_name: dw 0
-db 'ExitProcess',0
+align 8, db 0
+%macro KERNEL_APIS 0
+    VERIFY_API ExitProcess
+    VERIFY_API GetCommandLineW
+    VERIFY_API CreateFileW
+    VERIFY_API GetFileSizeEx
+    VERIFY_API CreateFileMappingW
+    VERIFY_API MapViewOfFile
+    VERIFY_API CloseHandle
+%endmacro
+%macro VERIFY_API 1
+iat_%1: dq import_%1-TEST_BASE
+%endmacro
+kernel_iat:
+    KERNEL_APIS
+    dq 0
+shell_iat:
+    VERIFY_API CommandLineToArgvW
+    dq 0
+%unmacro VERIFY_API 1
+kernel_name: db 'KERNEL32.dll',0
+shell_name: db 'SHELL32.dll',0
+%macro VERIFY_API 1
+    align 2,db 0
+import_%1:
+    dw 0
+    %defstr %%name %1
+    db %%name,0
+%endmacro
+    KERNEL_APIS
+    VERIFY_API CommandLineToArgvW
+%unmacro VERIFY_API 1
 imports_data_end:
 text_raw_size equ (text_end-text_start+0x1ff)&~0x1ff
 imports_raw_size equ (imports_data_end-imports+0x1ff)&~0x1ff

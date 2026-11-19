@@ -1105,6 +1105,18 @@ PROC_FRAME bitmaps_load, 38h, rbx
     mov qword [rsp+28h], LR_DEFAULTSIZE
     call LoadImageW
     mov [hIcon], rax
+%ifdef PE_NATIVE
+    call desktop_bitmaps_decode
+    test eax, eax
+    jz .out
+    lea rcx, [flameBmp]
+    call bitmap_create
+    mov [hFlame], rax
+    lea rcx, [coffeeBmp]
+    call bitmap_create
+    mov [hCoffeeBmp], rax
+.out:
+%else
     xor ebx, ebx
     DO
     mov rcx, [hInst]
@@ -1119,7 +1131,29 @@ PROC_FRAME bitmaps_load, 38h, rbx
     inc ebx
     cmp ebx, 2
     WHILE jb
+%endif
     ENDPROC_SAVED 38h, rbx
+
+%ifdef PE_NATIVE
+PROC_FRAME bitmap_create, 38h, rbx, rsi, rdi
+    mov rbx, rcx
+    lea rdx, [rbx+14]
+    xor ecx, ecx
+    xor r8d, r8d
+    lea r9, [rsp+30h]
+    mov qword [rsp+20h], 0
+    mov qword [rsp+28h], 0
+    call CreateDIBSection
+    test rax, rax
+    jz .out
+    mov rdi, [rsp+30h]
+    mov edx, [rbx+10]
+    lea rsi, [rbx+rdx]
+    mov ecx, [rbx+34]
+    rep movsb
+.out:
+    ENDPROC_SAVED 38h, rbx, rsi, rdi
+%endif
 
 PROC_FRAME bitmaps_free, 28h, rbx
     mov rcx, [hFont]
@@ -1389,6 +1423,7 @@ PROC_FRAME thread_count, 40h
 .ok:
     ENDPROC
 
+%ifndef PE_NATIVE
 PROC_FRAME title_set, 40h
     lea rcx, [titleBuf]
     lea rdx, [szTitleFmt]
@@ -1401,6 +1436,7 @@ PROC_FRAME title_set, 40h
     lea rdx, [titleBuf]
     call SetWindowTextW
     ENDPROC
+%endif
 
 PROC_FRAME title_status, 30h
     mov r8, rcx

@@ -87,6 +87,9 @@ COL_CHECK    equ 060CDFFh
 COL_SELECT   equ 0078D4h
 
 %include "ibt_state.inc"
+%ifdef ELF_NATIVE
+%include "../ibt_bitmaps.inc"
+%endif
 
 section .text
 

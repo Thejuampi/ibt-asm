@@ -2,17 +2,11 @@
 section .rsrc
 pe_rsrc_start:
     dd 0, 0
-    dw 0, 0, 0, 4
-    dd 2, 0x80000000 | (pe_rsrc_bitmaps - pe_rsrc_start)
+    dw 0, 0, 0, 3
     dd 3, 0x80000000 | (pe_rsrc_icons - pe_rsrc_start)
     dd 14, 0x80000000 | (pe_rsrc_groups - pe_rsrc_start)
     dd 24, 0x80000000 | (pe_rsrc_manifests - pe_rsrc_start)
 
-pe_rsrc_bitmaps:
-    dd 0, 0
-    dw 0, 0, 0, 2
-    dd 200, 0x80000000 | (pe_rsrc_flame_lang - pe_rsrc_start)
-    dd 201, 0x80000000 | (pe_rsrc_coffee_lang - pe_rsrc_start)
 pe_rsrc_icons:
     dd 0, 0
     dw 0, 0, 0, 1
@@ -32,8 +26,6 @@ pe_rsrc_manifests:
     dw 0, 0, 0, 1
     dd 0x409, %2 - pe_rsrc_start
 %endmacro
-PE_RESOURCE_LANG pe_rsrc_flame_lang, pe_rsrc_flame_entry
-PE_RESOURCE_LANG pe_rsrc_coffee_lang, pe_rsrc_coffee_entry
 PE_RESOURCE_LANG pe_rsrc_icon_lang, pe_rsrc_icon_entry
 PE_RESOURCE_LANG pe_rsrc_group_lang, pe_rsrc_group_entry
 PE_RESOURCE_LANG pe_rsrc_manifest_lang, pe_rsrc_manifest_entry
@@ -42,20 +34,10 @@ PE_RESOURCE_LANG pe_rsrc_manifest_lang, pe_rsrc_manifest_entry
 %1:
     dd %2 - PE_BASE, %3 - %2, 0, 0
 %endmacro
-PE_RESOURCE_ENTRY pe_rsrc_flame_entry, pe_rsrc_flame, pe_rsrc_flame_end
-PE_RESOURCE_ENTRY pe_rsrc_coffee_entry, pe_rsrc_coffee, pe_rsrc_coffee_end
 PE_RESOURCE_ENTRY pe_rsrc_icon_entry, pe_rsrc_icon, pe_rsrc_icon_end
 PE_RESOURCE_ENTRY pe_rsrc_group_entry, pe_rsrc_group, pe_rsrc_group_end
 PE_RESOURCE_ENTRY pe_rsrc_manifest_entry, pe_rsrc_manifest, pe_rsrc_manifest_end
 
-align 4, db 0
-pe_rsrc_flame:
-    incbin 'res/flame4-rle.bmp', 14
-pe_rsrc_flame_end:
-align 4, db 0
-pe_rsrc_coffee:
-    incbin 'res/coffee4.bmp', 14
-pe_rsrc_coffee_end:
 align 4, db 0
 pe_rsrc_icon:
     incbin 'res/app.ico', 22

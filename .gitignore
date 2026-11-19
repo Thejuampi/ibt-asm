@@ -9,6 +9,7 @@
 /unix/IntelBurnTest.unpacked
 /unix/*.o
 /unix/.ibt-deps.mk
+/unix/.ibt-compare-deps.mk
 /compare/
 __pycache__/
 *.py[cod]
