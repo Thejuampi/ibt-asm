@@ -23,7 +23,7 @@ section .header start=0 vstart=ELF_BASE
     ; Writable data and zero-initialized application state.
     dd 1, 6
     dq elf_data_start - ELF_BASE, elf_data_start, elf_data_start
-    dq elf_data_size, elf_data_size, 0x1000
+    dq elf_data_file_size, elf_data_mem_size, 0x1000
     ; Dynamic linker metadata.
     dd 2, 6
     dq elf_dynamic - ELF_BASE, elf_dynamic, elf_dynamic
@@ -35,7 +35,11 @@ elf_interpreter: db '/lib64/ld-linux-x86-64.so.2', 0
 elf_interpreter_end:
     ; Stable file offsets for the numerical reference ranges.
     times 0x200 - ($ - $$) db 0
+%ifdef IBT_COMPACT_PIPELINE
+    db 'KRN2'
+%else
     db 'KRN1'
+%endif
     dd 4
     dd lp_fill_cols - ELF_BASE, lp_emit - lp_fill_cols
     dd lp_pack_a - ELF_BASE, lp_core_end - lp_pack_a
@@ -56,6 +60,10 @@ elf_interpreter_end:
 %if kernel_count != 26
     %error The numerical reference must name all 26 primary routines
 %endif
+%ifdef IBT_COMPACT_PIPELINE
+    dd 0, dual_lp_fill_ones - dual_lp_fill_cols
+    times kernel_count - 2 dd 0
+%else
 %macro KERNEL_LPK 1
     dd dual_%1 - dual_lp_fill_cols
 %endmacro
@@ -65,6 +73,7 @@ elf_interpreter_end:
 %include 'reference/numerical/kernel_table.inc'
 %unmacro KERNEL_LPK 1
 %unmacro KERNEL_BENCH 1
+%endif
     dd verify_lp_resid - verify_lp_resid
     dd elf_kernel_symbols - ELF_BASE
 
@@ -74,7 +83,7 @@ section .data follows=.text vfollows=.text align=4096 valign=4096
 elf_data_start:
 section .dynamic follows=.data vfollows=.data align=16 valign=16
 elf_dynamic_start:
-section .elf_bss progbits follows=.dynamic vfollows=.dynamic align=64 valign=64
+section .elf_bss nobits follows=.dynamic align=64
 elf_bss_start:
 %ifdef KERNEL_EQUIVALENT_ADDRESS
     resb 64
@@ -174,126 +183,22 @@ elf_report_error:
     syscall
     ret
 
-; Compare loaded numerical code with the frozen-source reference image.
-elf_verify_kernels:
-    push rbp
-    mov rbp, rsp
-    lea rdi, [rel elf_kernel_reference]
-    call elf_verify_reference
-    pop rbp
-    ret
-
-elf_verify_reference:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push r12
-    push r13
-    push r14
-    push r15
-    sub rsp, 0x38
-    xor r15d, r15d
-    mov eax, 2                    ; open
-    xor esi, esi
-    xor edx, edx
-    syscall
-    test rax, rax
-    js .done
-    mov rbx, rax
-    mov eax, 8                    ; lseek to end
-    mov rdi, rbx
-    xor esi, esi
-    mov edx, 2
-    syscall
-    test rax, rax
-    jle .close_only
-    cmp rax, 0x1000000
-    ja .close_only
-    mov r13, rax
-    mov eax, 9                    ; mmap read-only, private
-    xor edi, edi
-    mov rsi, r13
-    mov edx, 1
-    mov r10d, 2
-    mov r8, rbx
-    xor r9d, r9d
-    syscall
-    cmp rax, -4095
-    jae .close_only
-    mov r12, rax
-    mov eax, 3                    ; close
-    mov rdi, rbx
-    syscall
-    cmp r13, 0x300
-    jb .unmap
-    cmp dword [r12+0x200], 0x314e524b ; KRN1
-    jne .unmap
-    cmp dword [r12+0x204], 4
-    jne .unmap
-    mov eax, [r12+0x2fc]
-    lea rdx, [rax+8]
-    cmp rdx, r13
-    ja .unmap
-    lea rdx, [r12+rax]
-    cmp dword [rdx], 0x3159534b ; KSY1
-    jne .unmap
-    mov ecx, [rdx+4]
-    cmp ecx, (elf_kernel_symbol_end - elf_kernel_symbol_entries) / 4
-    jne .unmap
-    lea rax, [rax+rcx*4+8]
-    cmp rax, r13
-    ja .unmap
-    mov qword [rsp], ELF_BASE
-    mov [rsp+8], r12
-    mov qword [rsp+16], 0
-    lea rax, [rel elf_kernel_symbol_entries]
-    mov [rsp+24], rax
-    add rdx, 8
-    mov [rsp+32], rdx
-    mov [rsp+40], rcx
-%define KERNEL_RVA_BIAS 0
-%define KERNEL_FILE_SIZE r13
-%define KERNEL_CONTEXT rsp
-%define KERNEL_FAILURE .unmap
-%include 'native/kernel_verify_ranges.inc'
-%undef KERNEL_RVA_BIAS
-%undef KERNEL_FILE_SIZE
-%undef KERNEL_CONTEXT
-%undef KERNEL_FAILURE
-    mov r15d, 1
-.unmap:
-    mov eax, 11                   ; munmap
-    mov rdi, r12
-    mov rsi, r13
-    syscall
-    jmp .done
-.close_only:
-    mov eax, 3
-    mov rdi, rbx
-    syscall
-.done:
-    mov eax, r15d
-    add rsp, 0x38
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop rbx
-    pop rbp
-    ret
-%include 'native/kernel_symbol_resolver.inc'
-%include 'native/kernel_semantic_compare.inc'
-%include 'native/kernel_decode.inc'
 align 4, db 0
 elf_kernel_symbols:
     db 'KSY1'
     dd (elf_kernel_symbol_end - elf_kernel_symbol_entries) / 4
 elf_kernel_symbol_entries:
-%macro KERNEL_SYMBOL 1
+%macro KERNEL_SYMBOL 1-2
+%ifdef IBT_COMPACT_PIPELINE
+    %if %0 = 2
+        dd 0
+        %exitmacro
+    %endif
+%endif
     dd %1 - ELF_BASE
 %endmacro
 %include 'native/kernel_symbol_table.inc'
-%unmacro KERNEL_SYMBOL 1
+%unmacro KERNEL_SYMBOL 1-2
 elf_kernel_symbol_end:
 elf_text_end:
 
@@ -377,9 +282,7 @@ elf_pthread_name: db 'libpthread.so.0', 0
 elf_libdl_name: db 'libdl.so.2', 0
 elf_build_test_option: db '--build-test', 0
 elf_prepare_test_option: db '--prepare-test', 0
-elf_verify_option: db '--verify-kernels', 0
 elf_gui_test_option: db '--gui-test', 0
-elf_kernel_reference: db '../reference/numerical/linux.bin', 0
 elf_gui_resources_error: db 'GUI test: font, drawing context or image unavailable', 10
 elf_gui_resources_error_end:
 elf_gui_display_error: db 'GUI test: cannot open X11 display', 10
@@ -406,4 +309,9 @@ elf_name_%1:
 elf_strings_end:
 elf_dynamic_data_end:
 
-elf_data_size equ (((((elf_data_primary_end - elf_data_start + 15) & ~15) + elf_dynamic_data_end - elf_dynamic_start + 63) & ~63) + elf_bss_end - elf_bss_start)
+elf_data_file_size equ ((elf_data_primary_end - elf_data_start + 15) & ~15) + elf_dynamic_data_end - elf_dynamic_start
+elf_data_mem_size equ ((elf_data_file_size + 63) & ~63) + elf_bss_end - elf_bss_start
+%ifdef APP_FILE_LIMIT
+elf_file_size equ ((0x300 + elf_text_end - elf_text_start + 0xfff) & ~0xfff) + elf_data_file_size
+times ((elf_file_size <= APP_FILE_LIMIT) - 1) db 0
+%endif

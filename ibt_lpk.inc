@@ -77,6 +77,12 @@ test_main:
     call lp_test_case
     mov edi, 1024
     call lp_test_case
+%ifdef CONT_PIPELINE
+    mov rax, [lpTmpR]
+    mov [rsp+40h], rax
+    mov rax, [lpTmpN]
+    mov [rsp+48h], rax
+%endif
     mov edi, 2048
     call lp_test_case
     mov eax, [nproc]
@@ -120,6 +126,24 @@ test_main:
     call CloseHandle
     test r12d, r12d
     jnz .die
+%ifdef CONT_PIPELINE
+    mov dword [nproc], 4
+    mov dword [overlapRuns], 1
+    mov dword [contWarmup], 1
+    mov dword [contFixedN], 1024
+    mov dword [targetRuns], 6
+    call cont_burn_thread
+    cmp dword [failed], 0
+    jne .die
+    cmp dword [contVerified], 6
+    jne .die
+    mov rax, [contRefR]
+    cmp rax, [rsp+40h]
+    jne .die
+    mov rax, [contRefNorm]
+    cmp rax, [rsp+48h]
+    jne .die
+%endif
     xor ecx, ecx
     call ExitProcess
 .die:
@@ -464,6 +488,7 @@ lp_vzero:
 .r:
     ret
 
+%ifndef IBT_FILL_ENGINE
 align 32
 lp_wake:
     sub rsp, 28h
@@ -492,6 +517,7 @@ lp_acc_add:
     add rsp, 30h
     pop rbx
     ret
+%endif
 
 %ifndef IBT_SECOND_ENGINE
 lp_count_pcores:
@@ -969,6 +995,7 @@ lp_touch:
 .o:
     ret
 
+%ifndef IBT_FILL_ENGINE
 lp_pack_ensure:
     push rbx
     sub rsp, 20h
@@ -1002,6 +1029,7 @@ lp_pack_ensure:
     add rsp, 20h
     pop rbx
     ret
+%endif
 
 lp_pack_drop:
     push rbx
@@ -1026,6 +1054,10 @@ lp_pack_drop:
     pop rbx
     ret
 
+%ifdef IBT_FILL_ENGINE
+lp_par:
+    jmp cont_par_b
+%else
 lp_touch_a:
     push rbx
     sub rsp, 20h
@@ -1092,6 +1124,7 @@ lp_touch_cols:
     pop rsi
     pop rbx
     ret
+%endif
 
 lp_fill_a:
     push rbx
@@ -1207,6 +1240,7 @@ lp_fill:
     call lp_fill_b
     jmp lp_fill_x
 
+%ifndef IBT_FILL_ENGINE
 align 32
 lp_dgetrf:
     push rbx
@@ -2442,7 +2476,9 @@ lp_dgetrs:
     pop rbx
     ret
 
+%endif ; IBT_FILL_ENGINE
 %endif ; IBT_RESIDUAL_ENGINE: only the original complete residual is needed
+%ifndef IBT_FILL_ENGINE
 align 32
 lp_resid:
     push rbx
@@ -2603,6 +2639,7 @@ lp_resid:
     pop rsi
     pop rbx
     ret
+%endif
 
 %ifndef IBT_SECOND_ENGINE
 lp_emit:

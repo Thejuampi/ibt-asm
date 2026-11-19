@@ -5,7 +5,6 @@ PE_API GetModuleHandleW
 PE_API GetModuleFileNameW
 PE_API FindResourceW
 PE_API WriteFile
-PE_API ReadFile
 PE_API CloseHandle
 PE_API CreateFileW
 PE_API CreateThread
@@ -20,9 +19,7 @@ PE_API TlsSetValue
 PE_API SetThreadPriority
 PE_API GetCurrentThread
 PE_API GetCommandLineW
-PE_API GetProcessHeap
-PE_API HeapAlloc
-PE_API HeapFree
+PE_API LocalFree
 PE_API GetSystemInfo
 PE_API GetLogicalProcessorInformationEx
 PE_API GlobalMemoryStatusEx
@@ -57,7 +54,6 @@ PE_API LoadImageW
 PE_API MessageBoxW
 PE_API SetWindowTextW
 PE_API GetWindowTextW
-PE_API GetDlgItem
 PE_API EnableWindow
 PE_API SetTimer
 PE_API KillTimer
@@ -110,6 +106,7 @@ PE_API CreatePen
 PE_API RoundRect
 PE_API CreateRoundRectRgn
 PE_API CreateCompatibleDC
+PE_API CreateDIBSection
 PE_API DeleteDC
 PE_API BitBlt
 PE_API GetStockObject
@@ -129,6 +126,7 @@ PE_API WakeByAddressAll
 PE_END_DLL
 
 PE_DLL shell32, 'SHELL32.dll'
+PE_API CommandLineToArgvW
 PE_API ShellExecuteW
 PE_END_DLL
 

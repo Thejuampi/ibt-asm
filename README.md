@@ -4,7 +4,7 @@
 
 **An x86-64 CPU stability test written entirely in assembly and tuned for modern Intel processors.**
 
-[Download USB v3.2.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe) · [Download Windows v3.3.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest-linux-x64) · [USB release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0) · [Website](https://thejuampi.github.io/ibt-asm/) · [Build from source](#build-from-source)
+[Download USB v3.2.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe) · [Download Windows v3.3.1](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest-linux-x64) · [USB release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0) · [Website](https://thejuampi.github.io/ibt-asm/) · [Build from source](#build-from-source)
 
 </div>
 
@@ -33,7 +33,7 @@ assets. ISA and available-memory values are detected independently on each host.
 
 ## Quick start
 
-1. [Download `IntelBurnTest.exe`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest.exe).
+1. [Download `IntelBurnTest.exe`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest.exe).
 2. Close unnecessary applications and start temperature monitoring.
 3. Choose a stress level, run count, and thread count.
 4. Enable `results.log` only if you want a persistent record.
@@ -41,18 +41,14 @@ assets. ISA and available-memory values are detected independently on each host.
 6. Treat the test as passed only after every requested run completes with matching residual signatures.
 
 For Linux x86-64 with X11, download
-[`IntelBurnTest-linux-x64`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest-linux-x64),
+[`IntelBurnTest-linux-x64`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest-linux-x64),
 run `chmod +x IntelBurnTest-linux-x64`, then `./IntelBurnTest-linux-x64`.
 The Linux executable requires glibc, X11, and Xft at runtime.
 
-The v3.3.0 Windows executable is unsigned, so Windows SmartScreen may display a warning on first launch.
-
-```text
-Windows: IntelBurnTest.exe        98,304 bytes
-SHA-256: 4784049ca4831ca3d68af5aa90e1abd694dd3dbe1ad7c8fcf5190ea0ad70edc4
-Linux:   IntelBurnTest-linux-x64 172,008 bytes
-SHA-256: e4b1b2e2aebd3aca781c2c4b9431f4a3e41a82bf030d604683556f146c078820
-```
+The Windows executable is unsigned. Microsoft Defender SmartScreen can warn at
+download or launch while the file builds reputation for its SHA-256 hash.
+The [v3.3.1 release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.3.1)
+list the sizes and SHA-256 checksums for both downloads.
 
 ## How stability is determined
 
@@ -168,11 +164,12 @@ Open a command prompt with NASM and GNU Make on `PATH`, change to the repository
 make
 ```
 
-NASM writes the executable to `bin/IntelBurnTest.exe`; `make` verifies 53
-numerical routines against fixed machine-code references and runs the numerical
-and resource self-test. A failed check makes the build fail. The verifier
-normalizes supported instruction encodings, NOPs, branch targets and symbol
-addresses; see `reference/numerical/README.md` for its limits.
+NASM writes the executable to `bin/IntelBurnTest.exe`. The Windows executable
+has a 54,784-byte limit. Before installing the candidate, `make` compares its
+29 numerical routines and seven helper ranges with the fixed references and
+runs its numerical and resource self-test. A separate test executable runs
+the extended numerical and result-display checks. See
+[`reference/numerical/README.md`](reference/numerical/README.md) for the verifier.
 Running `make` again reuses the current executable when its inputs have not
 changed. Use `make -B` to force a full rebuild.
 
@@ -211,11 +208,12 @@ make
 ./unix/IntelBurnTest
 ```
 
-NASM creates `unix/IntelBurnTest` directly and `make` runs its headless numerical
-self-test and checks its X11 and Xft imports. `make check-gui` also opens and
-checks the interface when an X11 display is available. The direct NASM output is
-uncompressed; it does not retain the former 25 KiB packed-size limit. See
-[`unix/README.md`](unix/README.md) for Unix-specific details.
+NASM creates the uncompressed `unix/IntelBurnTest` directly with a 43,344-byte
+limit. The ELF loader allocates and clears the zero-initialized state in memory.
+`make` verifies the candidate's numerical code, runs its headless numerical
+self-test, and checks the X11 and Xft imports.
+`make check-gui` opens and checks the interface on an X11 display. See
+[`unix/README.md`](unix/README.md) for the Unix build checks.
 
 ### Bootable UEFI port
 
@@ -251,7 +249,7 @@ ibt_lpk.inc         test orchestration and numerical routines
 bench_lib.inc       optimized matrix kernels
 res/                source and compiled graphical assets
 tools/              asset generation, alignment checks, size reports, and QA
-unix/               Linux/x86-64 X11 frontend, build, and size gate
+unix/               Linux/x86-64 X11 frontend and build
 uefi/               OS-free x64 UEFI frontend, USB installer, and boot tests
 reference/c/        C equivalent of every assembly procedure (reading map)
 ```

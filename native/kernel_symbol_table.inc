@@ -1,6 +1,7 @@
 ; Stable symbol identities for the numerical verifier.
 ;
-; The including image defines KERNEL_SYMBOL label. Keep the order unchanged:
+; KERNEL_SYMBOL takes a label and an optional marker for removed solver code.
+; Keep the order unchanged:
 ; the position is the identity shared by the candidate and reference image.
 ; Entries cover the four existing checked spans, their direct branch targets,
 ; and the symbols reached by their COFF relocations. Local branch labels are
@@ -152,42 +153,42 @@ KERNEL_SYMBOL dual_lp_fill_ones
 KERNEL_SYMBOL dual_lp_fill_x
 KERNEL_SYMBOL dual_lp_fill_b
 KERNEL_SYMBOL dual_lp_fill
-KERNEL_SYMBOL dual_lp_dgetrf
-KERNEL_SYMBOL dual_lp_scale_col
-KERNEL_SYMBOL dual_lp_daxpy_neg
-KERNEL_SYMBOL dual_lp_daxpy4_neg
-KERNEL_SYMBOL dual_lp_panel
-KERNEL_SYMBOL dual_lp_laswp_tail
-KERNEL_SYMBOL dual_lp_laswp_cols
-KERNEL_SYMBOL dual_lp_dgetf2
-KERNEL_SYMBOL dual_lp_pivot
-KERNEL_SYMBOL dual_lp_swap_rows
-KERNEL_SYMBOL dual_lp_dtrsm_left
-KERNEL_SYMBOL dual_lp_dtrsm_cols
-KERNEL_SYMBOL dual_lp_dgemm_update
-KERNEL_SYMBOL dual_lp_dgemm_neg
+KERNEL_SYMBOL dual_lp_dgetrf, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_scale_col, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_daxpy_neg, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_daxpy4_neg, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_panel, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_laswp_tail, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_laswp_cols, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dgetf2, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_pivot, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_swap_rows, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dtrsm_left, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dtrsm_cols, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dgemm_update, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dgemm_neg, omitted_with_shared_solver
 KERNEL_SYMBOL dual_lp_par
-KERNEL_SYMBOL dual_lp_steal
-KERNEL_SYMBOL dual_lp_job_run
-KERNEL_SYMBOL dual_lp_dgetrs
-KERNEL_SYMBOL dual_lp_resid
-KERNEL_SYMBOL dual_lp_pack_a
-KERNEL_SYMBOL dual_lp_pack_b
-KERNEL_SYMBOL dual_lp_pack_b_all
-KERNEL_SYMBOL dual_lp_dgemm_ir
-KERNEL_SYMBOL dual_lp_dgemm_cols
-KERNEL_SYMBOL dual_lp_k12x4
-KERNEL_SYMBOL dual_lp_k8x4
-KERNEL_SYMBOL dual_lp_k8x4_avx
-KERNEL_SYMBOL dual_lp_krest
-KERNEL_SYMBOL dual_lp_acc_add
-KERNEL_SYMBOL dual_lp_acc_from_q
+KERNEL_SYMBOL dual_lp_steal, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_job_run, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dgetrs, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_resid, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_pack_a, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_pack_b, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_pack_b_all, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dgemm_ir, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_dgemm_cols, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_k12x4, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_k8x4, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_k8x4_avx, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_krest, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_acc_add, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_acc_from_q, omitted_with_shared_solver
 KERNEL_SYMBOL dual_lp_fill_a
 KERNEL_SYMBOL dual_lp_pack_drop
-KERNEL_SYMBOL dual_lp_pack_ensure
-KERNEL_SYMBOL dual_lp_touch_cols
+KERNEL_SYMBOL dual_lp_pack_ensure, omitted_with_shared_solver
+KERNEL_SYMBOL dual_lp_touch_cols, omitted_with_shared_solver
 KERNEL_SYMBOL dual_lp_vzero
-KERNEL_SYMBOL dual_lp_wake
+KERNEL_SYMBOL dual_lp_wake, omitted_with_shared_solver
 
 ; Shared scheduler and platform bridge targets.
 KERNEL_SYMBOL verify_lp_resid

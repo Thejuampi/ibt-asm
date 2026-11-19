@@ -5,8 +5,23 @@ default rel
 
 section .header start=0 vstart=PE_BASE
     db 'MZ'
+    dw dos_end - $$, 1, 0, 4, 0x10, 0xffff
+    dw 0, 0x100, 0, 0, 0, 0x40, 0
     times 0x3c - ($ - $$) db 0
-    dd pe_header - PE_BASE
+    dd pe_header - $$
+bits 16
+dos_start:
+    push cs
+    pop ds
+    mov dx, dos_message - dos_start
+    mov ah, 9
+    int 0x21
+    mov ax, 0x4c01
+    int 0x21
+dos_message: db 'This program cannot be run in DOS mode.', 13, 10, '$'
+dos_end:
+bits 64
+align 8, db 0
 pe_header:
     db 'PE', 0, 0
     dw 0x8664, 4
@@ -14,7 +29,8 @@ pe_header:
     dw 0xf0, 0x0022
     dw 0x20b
     db 0, 0
-    dd pe_text_raw_size, pe_data_raw_size, pe_bss_end - pe_bss_start
+    dd pe_text_raw_size, pe_data_raw_size + pe_rsrc_raw_size + pe_reloc_raw_size
+    dd pe_bss_end - pe_bss_start
     dd start - PE_BASE, pe_text_start - PE_BASE
     dq PE_BASE
     dd 0x1000, 0x200
@@ -34,7 +50,7 @@ pe_header:
     times 10 dq 0
 
     db '.text', 0, 0, 0
-    dd pe_text_raw_size, pe_text_start - PE_BASE
+    dd pe_text_size, pe_text_start - PE_BASE
     dd pe_text_raw_size, 0x400
     dd 0, 0
     dw 0, 0
@@ -59,7 +75,11 @@ pe_header:
     dd 0x42000040
     ; Stable offsets let the verifier find the original routines in this image.
     times 0x300 - ($ - $$) db 0
+%ifdef IBT_COMPACT_PIPELINE
+    db 'KRN2'
+%else
     db 'KRN1'
+%endif
     dd 4
     dd lp_fill_cols - pe_text_start, lp_emit - lp_fill_cols
     dd lp_pack_a - pe_text_start, lp_core_end - lp_pack_a
@@ -80,6 +100,10 @@ pe_header:
 %if kernel_count != 26
     %error The numerical reference must name all 26 primary routines
 %endif
+%ifdef IBT_COMPACT_PIPELINE
+    dd 0, dual_lp_fill_ones - dual_lp_fill_cols
+    times kernel_count - 2 dd 0
+%else
 %macro KERNEL_LPK 1
     dd dual_%1 - dual_lp_fill_cols
 %endmacro
@@ -89,6 +113,7 @@ pe_header:
 %include 'reference/numerical/kernel_table.inc'
 %unmacro KERNEL_LPK 1
 %unmacro KERNEL_BENCH 1
+%endif
     dd verify_lp_resid - verify_lp_resid
     dd 0x400 + ((pe_text_primary_end - pe_text_start + 15) & ~15) + (pe_kernel_symbols - pe_v3text_start)
     times 0x400 - ($ - $$) db 0
@@ -103,12 +128,13 @@ section .v3str follows=.data vfollows=.data align=16 valign=16
 pe_v3str_start:
 section .idata follows=.v3str vfollows=.v3str align=8 valign=8
 pe_idata_start:
-section .pe_bss progbits follows=.idata vfollows=.idata align=64 valign=64
+; Uninitialized state occupies memory, not bytes in the executable.
+section .pe_bss nobits follows=.idata align=64
 pe_bss_start:
 %ifdef KERNEL_EQUIVALENT_ADDRESS
     resb 64
 %endif
-section .rsrc follows=.pe_bss vfollows=.pe_bss align=512 valign=4096
+section .rsrc follows=.idata vfollows=.pe_bss align=512 valign=4096
 section .reloc follows=.rsrc vfollows=.rsrc align=512 valign=4096
 pe_reloc_start:
 
@@ -172,6 +198,7 @@ pe_text_primary_end:
 section .data
 pe_data_primary_end:
 section .v3str
+%if SELFTEST
 pe_expected_time: dw __utf16le__('2.000'), 0
 pe_expected_time_label: dw __utf16le__('2.000 s'), 0
 pe_expected_speed: dw __utf16le__('0.3579'), 0
@@ -181,8 +208,8 @@ pe_expected_short_time: dw __utf16le__('0.125'), 0
 pe_expected_short_speed: dw __utf16le__('0.7158'), 0
 pe_expected_small_residual: dw __utf16le__('1.410597e-03'), 0
 pe_small_residual: dq 0.001410597
-pe_kernel_reference_path: dw __utf16le__('reference/numerical/windows.bin'), 0
 pe_expected_selftest: db '1024 1032 4 2.000 0.3579 2.500000e+00 1.250000e+00', 0
+%endif
 pe_v3str_end:
 section .text$v3
 %macro PE_DLL 2
@@ -210,18 +237,6 @@ pe_check_resources:
     je .fail
 %endif
     mov rcx, [hInst]
-    mov edx, 200
-    mov r8d, 2
-    call FindResourceW
-    test rax, rax
-    jz .fail
-    mov rcx, [hInst]
-    mov edx, 201
-    mov r8d, 2
-    call FindResourceW
-    test rax, rax
-    jz .fail
-    mov rcx, [hInst]
     mov edx, 1
     mov r8d, 14
     call FindResourceW
@@ -233,28 +248,16 @@ pe_check_resources:
     call FindResourceW
     test rax, rax
     jz .fail
-    mov rcx, [hInst]
-    mov edx, 200
-    xor r8d, r8d
-    xor r9d, r9d
-    mov qword [rsp + 0x20], 0
-    mov qword [rsp + 0x28], 0
-    call LoadImageW
-    test rax, rax
+    call bitmaps_load
+    cmp qword [hFlame], 0
+    je .fail
+    cmp qword [hCoffeeBmp], 0
+    je .fail
+    mov rcx, [hIcon]
+    test rcx, rcx
     jz .fail
-    mov rcx, rax
-    call DeleteObject
-    mov rcx, [hInst]
-    mov edx, 1
-    mov r8d, 1
-    xor r9d, r9d
-    mov qword [rsp + 0x20], 0
-    mov qword [rsp + 0x28], 0
-    call LoadImageW
-    test rax, rax
-    jz .fail
-    mov rcx, rax
     call DestroyIcon
+    call bitmaps_free
     mov eax, 1
     add rsp, 0x38
     ret
@@ -263,6 +266,7 @@ pe_check_resources:
     add rsp, 0x38
     ret
 
+%if SELFTEST
 ; Exercise the real window-message/result path with known numerical values.
 pe_check_result_fields:
     sub rsp, 0x28
@@ -419,129 +423,38 @@ pe_check_metric_paint:
     xor eax, eax
     add rsp, 0x78
     ret
-; Compare the loaded numerical code to a reference assembled from frozen source.
-; Each of the 53 routines is compared instruction by instruction.
-pe_verify_kernels:
+%else
+pe_app_selftest:
     sub rsp, 0x28
-    lea rcx, [rel pe_kernel_reference_path]
-    call pe_verify_reference
-    add rsp, 0x28
-    ret
-
-pe_verify_reference:
-    push rbp
-    mov rbp, rsp
-    push rbx
-    push rsi
-    push rdi
-    push r12
-    push r13
-    push r14
-    push r15
-    sub rsp, 0x88
-    xor r15d, r15d
-    mov edx, 0x80000000
-    mov r8d, 1
-    xor r9d, r9d
-    mov qword [rsp+0x20], 3
-    mov qword [rsp+0x28], 0x80
-    mov qword [rsp+0x30], 0
-    call CreateFileW
-    cmp rax, -1
-    je .done
-    mov rbx, rax
-    xor ecx, ecx
-    mov edx, 0x100000
-    mov r8d, 0x3000
-    mov r9d, 4
-    call VirtualAlloc
-    test rax, rax
-    jz .close_only
-    mov r12, rax
-    mov rcx, rbx
-    mov rdx, r12
-    mov r8d, 0x100000
-    lea r9, [rsp+0x40]
-    mov qword [rsp+0x20], 0
-    call ReadFile
-    mov r13d, eax
-    mov r14d, [rsp+0x40]
-    mov rcx, rbx
-    call CloseHandle
-    test r13d, r13d
-    jz .free
-    cmp r14d, 0x400
-    jb .free
-    cmp dword [r12+0x300], 0x314e524b ; KRN1
-    jne .free
-    cmp dword [r12+0x304], 4
-    jne .free
-    mov eax, [r12+0x3fc]
-    lea rdx, [rax+8]
-    cmp rdx, r14
-    ja .free
-    lea rdx, [r12+rax]
-    cmp dword [rdx], 0x3159534b ; KSY1
-    jne .free
-    mov ecx, [rdx+4]
-    cmp ecx, (pe_kernel_symbol_end - pe_kernel_symbol_entries) / 4
-    jne .free
-    lea rax, [rax+rcx*4+8]
-    cmp rax, r14
-    ja .free
-    mov rax, [hInst]
-    mov [rsp+0x58], rax
-    mov [rsp+0x60], r12
-    mov qword [rsp+0x68], 0xc00
-    lea rax, [rel pe_kernel_symbol_entries]
-    mov [rsp+0x70], rax
-    add rdx, 8
-    mov [rsp+0x78], rdx
-    mov [rsp+0x80], rcx
-%define KERNEL_RVA_BIAS 0xc00
-%define KERNEL_FILE_SIZE r14
-%define KERNEL_CONTEXT rsp+0x58
-%define KERNEL_FAILURE .free
-%include 'native/kernel_verify_ranges.inc'
-%undef KERNEL_RVA_BIAS
-%undef KERNEL_FILE_SIZE
-%undef KERNEL_CONTEXT
-%undef KERNEL_FAILURE
-    mov r15d, 1
-.free:
-    mov rcx, r12
-    xor edx, edx
-    mov r8d, 0x8000
-    call VirtualFree
-    jmp .done
-.close_only:
-    mov rcx, rbx
-    call CloseHandle
+    mov dword [nproc], 4
+    mov dword [overlapRuns], 1
+    mov dword [contFixedN], 1024
+    mov dword [targetRuns], 6
+    call cont_burn_thread
+    mov ecx, 1
+    cmp dword [failed], 0
+    jne .done
+    cmp dword [contVerified], 6
+    setne cl
 .done:
-    mov eax, r15d
-    add rsp, 0x88
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop rdi
-    pop rsi
-    pop rbx
-    pop rbp
-    ret
-%include 'native/kernel_symbol_resolver.inc'
-%include 'native/kernel_semantic_compare.inc'
-%include 'native/kernel_decode.inc'
+    call ExitProcess
+%endif
 align 4, db 0
 pe_kernel_symbols:
     db 'KSY1'
     dd (pe_kernel_symbol_end - pe_kernel_symbol_entries) / 4
 pe_kernel_symbol_entries:
-%macro KERNEL_SYMBOL 1
+%macro KERNEL_SYMBOL 1-2
+%ifdef IBT_COMPACT_PIPELINE
+    %if %0 = 2
+        dd 0
+        %exitmacro
+    %endif
+%endif
     dd %1 - PE_BASE
 %endmacro
 %include 'native/kernel_symbol_table.inc'
-%unmacro KERNEL_SYMBOL 1
+%unmacro KERNEL_SYMBOL 1-2
 pe_kernel_symbol_end:
 pe_text_end:
 
@@ -613,10 +526,15 @@ pe_bss_end:
 section .reloc
 pe_reloc_end:
 
-pe_text_raw_size equ ((((pe_text_primary_end - pe_text_start + 15) & ~15) + pe_text_end - pe_v3text_start + 0x1ff) & ~0x1ff)
+pe_text_size equ ((pe_text_primary_end - pe_text_start + 15) & ~15) + pe_text_end - pe_v3text_start
+pe_text_raw_size equ (pe_text_size + 0x1ff) & ~0x1ff
 pe_data_init_size equ (((((pe_data_primary_end - pe_data_start + 15) & ~15) + pe_v3str_end - pe_v3str_start + 7) & ~7) + pe_data_initialized_end - pe_idata_start)
 pe_data_virtual_size equ ((pe_data_init_size + 63) & ~63) + pe_bss_end - pe_bss_start
-pe_data_raw_size equ (pe_data_virtual_size + 0x1ff) & ~0x1ff
+pe_data_raw_size equ (pe_data_init_size + 0x1ff) & ~0x1ff
 pe_rsrc_raw_size equ (pe_rsrc_end - pe_rsrc_start + 0x1ff) & ~0x1ff
 pe_reloc_raw_size equ (pe_reloc_end - pe_reloc_start + 0x1ff) & ~0x1ff
 times pe_reloc_raw_size - (pe_reloc_end - pe_reloc_start) db 0
+%ifdef APP_FILE_LIMIT
+pe_file_size equ 0x400 + pe_text_raw_size + pe_data_raw_size + pe_rsrc_raw_size + pe_reloc_raw_size
+times ((pe_file_size <= APP_FILE_LIMIT) - 1) db 0
+%endif

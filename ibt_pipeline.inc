@@ -1,8 +1,15 @@
 ; One LU at a time, two matrix buffers, original full asynchronous residual.
 ; The background producer claims only an empty matrix. Dense jobs take
 ; priority over refill chunks; every prepared matrix is for a requested solve.
+struc CONT_MATRIX
+    .a resq 1
+    .x resq 1
+    .b resq 1
+endstruc
+
 section .bss
 alignb 64
+contMatrices resb 2*CONT_MATRIX_size
 contFrontIndex resd 1
 contBufferReady resd 2
 contPipelinePhase resd 1 ; 0 waiting, 1 factor, 2 solve, 3 enqueue, 4 final checks
@@ -10,29 +17,83 @@ alignb 8
 contComputeEnd resq 1
 
 section .text
-cont_pipeline_init:
+cont_pipeline_capture:
+    mov rax, [lpA]
+    mov [contMatrices+CONT_MATRIX.a], rax
+    mov rax, [lpX]
+    mov [contMatrices+CONT_MATRIX.x], rax
+    mov rax, [lpB]
+    mov [contMatrices+CONT_MATRIX.b], rax
+    mov rax, [dual_lpA]
+    mov [contMatrices+CONT_MATRIX_size+CONT_MATRIX.a], rax
+    mov rax, [dual_lpX]
+    mov [contMatrices+CONT_MATRIX_size+CONT_MATRIX.x], rax
+    mov rax, [dual_lpB]
+    mov [contMatrices+CONT_MATRIX_size+CONT_MATRIX.b], rax
+    ret
+
+; ECX is the owned slot and RBX is the idle role's descriptor.
+cont_bind_matrix:
+    lea rdx, [contMatrices]
+    imul ecx, ecx, CONT_MATRIX_size
+    add rdx, rcx
+    mov rax, [rdx+CONT_MATRIX.a]
+    mov rcx, [rbx+C_A]
+    mov [rcx], rax
+    mov rax, [rdx+CONT_MATRIX.x]
+    mov rcx, [rbx+C_X]
+    mov [rcx], rax
+    mov rax, [rdx+CONT_MATRIX.b]
+    mov rcx, [rbx+C_BV]
+    mov [rcx], rax
+    ret
+
+; lp_free releases B through the currently bound pointer.
+cont_pipeline_restore:
+    cmp qword [contMatrices+CONT_MATRIX.a], 0
+    je .out
     push rbx
     sub rsp, 20h
+    lea rbx, [contA]
+    xor ecx, ecx
+    call cont_bind_matrix
+    lea rbx, [contB]
+    mov ecx, 1
+    call cont_bind_matrix
+    mov qword [contMatrices+CONT_MATRIX.a], 0
+    add rsp, 20h
+    pop rbx
+.out:
+    ret
+
+cont_pipeline_init:
+    push rbx
+    push rsi
+    sub rsp, 28h
     mov dword [contFrontIndex], 0
     mov qword [contBufferReady], 0
     mov dword [contPipelinePhase], 0
     mov qword [contComputeEnd], 0
-    lea rbx, [contA]
-    call [rbx+C_FILL]
-    cmp dword [lpStop], 0
-    jne .stopped
-    mov dword [contBufferReady], 1
     lea rbx, [contB]
+    xor esi, esi
+.fill:
+    mov ecx, esi
+    call cont_bind_matrix
     call [rbx+C_FILL]
     cmp dword [lpStop], 0
     jne .stopped
-    mov dword [contBufferReady+4], 1
+    lea rax, [contBufferReady]
+    mov dword [rax+rsi*4], 1
+    inc esi
+    cmp esi, 2
+    jb .fill
     xor eax, eax
     jmp .out
 .stopped:
     mov eax, 1
 .out:
-    add rsp, 20h
+    add rsp, 28h
+    pop rsi
     pop rbx
     ret
 
@@ -49,6 +110,7 @@ cont_pipeline_run:
     call lp_pack_ensure
     test rax, rax
     jz .allocation_failed
+    lea rbx, [contA]
     xor esi, esi
 .loop:
     cmp dword [lpStop], 0
@@ -56,9 +118,6 @@ cont_pipeline_run:
     mov eax, [contIssued]
     cmp eax, [targetRuns]
     jae .tail
-    imul eax, esi, C_DESC_BYTES
-    lea rbx, [contA]
-    add rbx, rax
 .ready:
     cmp dword [lpStop], 0
     jne .out
@@ -73,6 +132,8 @@ cont_pipeline_run:
 .take:
     mov dword [rax+rsi*4], 3 ; exclusively owned by the LU coordinator
     mov dword [contGate], 0
+    mov ecx, esi
+    call cont_bind_matrix
     call cont_next
     cmp eax, -1
     je .tail
@@ -154,6 +215,7 @@ cont_pipeline_prepare:
     call lp_pack_ensure
     test rax, rax
     jz .allocation_failed
+    lea rbx, [contB]
 .loop:
     cmp dword [lpStop], 0
     jne .out
@@ -174,9 +236,8 @@ cont_pipeline_prepare:
 .claim_empty:
     mov dword [rax+rsi*4], 2 ; exclusively owned by the producer
     mov dword [contGate], 0
-    imul eax, esi, C_DESC_BYTES
-    lea rbx, [contA]
-    add rbx, rax
+    mov ecx, esi
+    call cont_bind_matrix
     call [rbx+C_FILL]
     call cont_lock
     lea rax, [contBufferReady]

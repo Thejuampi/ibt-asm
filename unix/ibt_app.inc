@@ -5,17 +5,6 @@ _start:
     jb .gui
 %ifdef ELF_NATIVE
     mov rsi, [r12+16]
-    lea rdi, [elf_verify_option]
-    call streq
-    test eax, eax
-    jz .check_prepare_option
-    call elf_verify_kernels
-    test eax, eax
-    jz .exit1
-    xor edi, edi
-    jmp .exit
-.check_prepare_option:
-    mov rsi, [r12+16]
     lea rdi, [elf_prepare_test_option]
     call streq
     test eax, eax
@@ -86,9 +75,6 @@ _start:
     call streq
     test eax, eax
     jz .regular_option
-    call elf_verify_kernels
-    test eax, eax
-    jz .exit1
     call elf_load_gui
     test eax, eax
     jnz .build_gui_loaded

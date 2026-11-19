@@ -1,11 +1,11 @@
 # Numerical verification references
 
-The application checks the 26 original numerical routines, their 26
-second-instance counterparts, and the independent residual routine: 53 in
-total. Adjacent helpers covered by the previous verifier are checked too.
-The fixed platform images are assembled from the preserved numerical
-source and instance mappings. Each image contains the symbol addresses needed
-to identify routines, state, and shared data. `make` never rewrites the images.
+The build checks the 26 original numerical routines, both producer fill
+routines, and the independent residual routine. It also checks seven helper
+ranges. The standalone checker reads the executable candidate as data before
+`make` installs that file. The fixed platform images come from the preserved
+numerical source and instance mappings. The symbol tables match the identities
+of routines, state, and shared data in the candidate and reference.
 
 The verifier decodes supported x86-64 instructions and compares their
 operations and operands. It ignores NOPs and normalizes alternate encodings,
@@ -19,9 +19,9 @@ The historical `*-nasm3.bin` images are retained but are not used by the
 current verifier because they predate its symbol table. Different supported
 NASM encodings are compared against the same platform reference.
 
-Run `make check-verifier` to exercise the actual application with equivalent
-encoding, NOP, branch and address variants, and a numerical mutation that must
-be rejected. NASM and the resulting executables are the build and test tools.
+Run `make check-verifier` to compare the application and its equivalent encoding,
+NOP, branch, and address variants. The checker must reject two mutations and
+distinguish a malformed image from a numerical difference.
 
 Do not regenerate these images merely to make a failing build pass. A deliberate
 change to numerical code or reference layout requires an independent review of

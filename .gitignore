@@ -2,10 +2,15 @@
 /dist/
 /unix/IntelBurnTest
 /unix/IntelBurnTest.build
+/unix/IntelBurnTest.compare-test
+/unix/IntelBurnTest.equivalent-*
 /unix/IntelBurnTest.verify-test
+/unix/IntelBurnTest.verify-late-test
 /unix/IntelBurnTest.unpacked
 /unix/*.o
 /unix/.ibt-deps.mk
+/unix/.ibt-compare-deps.mk
+/unix/.ibt-size-check
 /compare/
 __pycache__/
 *.py[cod]
