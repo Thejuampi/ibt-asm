@@ -17,6 +17,9 @@ REFERENCE := reference/numerical/windows.bin
 APP_FILE_LIMIT := 54784
 SIZE_CHECK_FILE ?= $(TARGET)
 SIZE_CHECK_OUTPUT := $(BIN_DIR)/.ibt-size-check
+GUI_CHECK_FILE ?= $(TARGET)
+GUI_CHECK_DIR := gui -v path
+GUI_CHECK_APP := $(BIN_DIR)/$(GUI_CHECK_DIR)/IntelBurnTest.exe
 CLEAN_FILES := $(TARGET) $(CANDIDATE) $(SELFTEST_APP) $(DEPFILE) $(COMPARE_TEST) $(COMPARE_DEPFILE) $(SIZE_CHECK_OUTPUT) \
 	$(BIN_DIR)/lpk_test.txt $(BIN_DIR)/lpk_prof.txt \
 	$(addprefix $(BIN_DIR)/ibt-kernel-,equivalent-mov.exe \
@@ -78,7 +81,9 @@ check-size: $(TARGET)
 	$(NASM) -f bin "-DSIZE_CHECK_FILE=$(SIZE_CHECK_FILE)" -DAPP_FILE_LIMIT=$(APP_FILE_LIMIT) -o "$(SIZE_CHECK_OUTPUT)" native/desktop_size_check.asm
 
 check-gui: $(TARGET) $(SELFTEST_APP)
-	$(call run_program,$(TARGET),-g)
+	@if not exist "$(subst /,\,$(BIN_DIR)/$(GUI_CHECK_DIR))" mkdir "$(subst /,\,$(BIN_DIR)/$(GUI_CHECK_DIR))"
+	@copy /Y "$(subst /,\,$(GUI_CHECK_FILE))" "$(subst /,\,$(GUI_CHECK_APP))" >nul
+	cd "$(BIN_DIR)" && $(call run_program,$(GUI_CHECK_DIR)\IntelBurnTest.exe,-g)
 	$(call run_program,$(SELFTEST_APP),-g)
 
 check-verifier: $(TARGET)
@@ -103,6 +108,7 @@ check-verifier: $(TARGET)
 
 clean:
 	@$(if $(wildcard $(CLEAN_FILES)),del /Q $(foreach file,$(wildcard $(CLEAN_FILES)),"$(subst /,\,$(file))"))
+	@if exist "$(subst /,\,$(GUI_CHECK_APP))" del /Q "$(subst /,\,$(GUI_CHECK_APP))"
 
 else
 
