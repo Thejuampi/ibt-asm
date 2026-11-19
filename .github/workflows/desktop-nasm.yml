@@ -33,7 +33,7 @@ jobs:
           copy C:\msys64\ucrt64\bin\mingw32-make.exe C:\msys64\ucrt64\bin\make.exe || exit /b 1
       - name: Build and test
         run: |
-          set "PATH=C:\msys64\ucrt64\bin;%PATH%"
+          set "PATH=C:\msys64\ucrt64\bin;%SystemRoot%\System32;%SystemRoot%"
           cd source
           nasm -v || exit /b 1
           make || exit /b 1
@@ -69,11 +69,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y nasm make libx11-6 libxft2 xvfb
+          mkdir "$RUNNER_TEMP/ibt-desktop-tools"
+          ln -s "$(command -v nasm)" "$RUNNER_TEMP/ibt-desktop-tools/nasm"
+          ln -s "$(command -v make)" "$RUNNER_TEMP/ibt-desktop-tools/make"
       - name: Build and test
         run: |
           cd source
           Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
           export DISPLAY=:99
+          export PATH="$RUNNER_TEMP/ibt-desktop-tools"
           nasm -v
           make
           make check
