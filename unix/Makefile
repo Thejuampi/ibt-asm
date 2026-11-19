@@ -11,6 +11,8 @@ DEPFILE := .ibt-deps.mk
 COMPARE_DEPFILE := .ibt-compare-deps.mk
 REFERENCE := ../reference/numerical/linux.bin
 APP_FILE_LIMIT := 43344
+SIZE_CHECK_FILE ?= $(TARGET)
+SIZE_CHECK_OUTPUT := .ibt-size-check
 .DEFAULT_GOAL := all
 
 ifneq ($(wildcard $(DEPFILE)),)
@@ -27,7 +29,7 @@ $(COMPARE_TEST): missing-compare-depfile
 endif
 
 .DELETE_ON_ERROR:
-.PHONY: all check check-gui check-verifier clean
+.PHONY: all check check-gui check-size check-verifier clean
 
 all: $(TARGET)
 	@echo "Build ready: unix/$(TARGET)"
@@ -43,11 +45,15 @@ $(TARGET): elf.asm $(REFERENCE) Makefile $(COMPARE_TEST)
 	@echo "Verified 29 numerical routines"
 	$(LOADER) ./$(CANDIDATE) --build-test ./$(TARGET)
 
-check: $(TARGET)
+check: check-size
 	@echo "Checking 29 numerical routines"
 	./$(COMPARE_TEST) ./$(TARGET)
 	@echo "Verified 29 numerical routines"
 	./$(TARGET) --selftest
+
+check-size: $(TARGET)
+	@echo "Checking $(SIZE_CHECK_FILE) against the $(APP_FILE_LIMIT)-byte desktop limit"
+	$(NASM) -f bin "-DSIZE_CHECK_FILE=$(SIZE_CHECK_FILE)" -DAPP_FILE_LIMIT=$(APP_FILE_LIMIT) -o "$(SIZE_CHECK_OUTPUT)" ../native/desktop_size_check.asm
 
 check-gui: $(TARGET)
 	./$(TARGET) --gui-test
@@ -71,4 +77,4 @@ check-verifier: $(TARGET)
 	@./$(COMPARE_TEST) ./$(LATE_MUTATION); status=$$?; if [ $$status -eq 1 ]; then echo "Verifier rejected the modified final helper"; else echo "ERROR: verifier did not reject the final helper mutation"; exit 1; fi
 
 clean:
-	rm -f $(TARGET) $(CANDIDATE) $(MUTATION) $(LATE_MUTATION) $(EQUIVALENT) $(COMPARE_TEST) $(DEPFILE) $(COMPARE_DEPFILE)
+	rm -f $(TARGET) $(CANDIDATE) $(MUTATION) $(LATE_MUTATION) $(EQUIVALENT) $(COMPARE_TEST) $(DEPFILE) $(COMPARE_DEPFILE) $(SIZE_CHECK_OUTPUT)

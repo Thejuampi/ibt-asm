@@ -10,6 +10,7 @@
 /unix/*.o
 /unix/.ibt-deps.mk
 /unix/.ibt-compare-deps.mk
+/unix/.ibt-size-check
 /compare/
 __pycache__/
 *.py[cod]
