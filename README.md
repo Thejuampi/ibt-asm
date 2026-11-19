@@ -4,7 +4,7 @@
 
 **An x86-64 CPU stability test written entirely in assembly and tuned for modern Intel processors.**
 
-[Download USB v3.2.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe) · [Download Windows v3.3.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest-linux-x64) · [USB release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0) · [Website](https://thejuampi.github.io/ibt-asm/) · [Build from source](#build-from-source)
+[Download USB v3.2.0](https://github.com/Thejuampi/ibt-asm/releases/download/v3.2.0/IntelBurnTest-USB-Setup.exe) · [Download Windows v3.3.1](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest.exe) · [Download Linux x64](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest-linux-x64) · [USB release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.2.0) · [Website](https://thejuampi.github.io/ibt-asm/) · [Build from source](#build-from-source)
 
 </div>
 
@@ -33,7 +33,7 @@ assets. ISA and available-memory values are detected independently on each host.
 
 ## Quick start
 
-1. [Download `IntelBurnTest.exe`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest.exe).
+1. [Download `IntelBurnTest.exe`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest.exe).
 2. Close unnecessary applications and start temperature monitoring.
 3. Choose a stress level, run count, and thread count.
 4. Enable `results.log` only if you want a persistent record.
@@ -41,20 +41,14 @@ assets. ISA and available-memory values are detected independently on each host.
 6. Treat the test as passed only after every requested run completes with matching residual signatures.
 
 For Linux x86-64 with X11, download
-[`IntelBurnTest-linux-x64`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.0/IntelBurnTest-linux-x64),
+[`IntelBurnTest-linux-x64`](https://github.com/Thejuampi/ibt-asm/releases/download/v3.3.1/IntelBurnTest-linux-x64),
 run `chmod +x IntelBurnTest-linux-x64`, then `./IntelBurnTest-linux-x64`.
 The Linux executable requires glibc, X11, and Xft at runtime.
 
-The v3.3.0 Windows executable is unsigned. Microsoft Defender SmartScreen can
-warn at download or launch while the file builds reputation for its SHA-256 hash.
-The checksums below identify the published files.
-
-```text
-Windows: IntelBurnTest.exe        98,304 bytes
-SHA-256: 4784049ca4831ca3d68af5aa90e1abd694dd3dbe1ad7c8fcf5190ea0ad70edc4
-Linux:   IntelBurnTest-linux-x64 172,008 bytes
-SHA-256: e4b1b2e2aebd3aca781c2c4b9431f4a3e41a82bf030d604683556f146c078820
-```
+The Windows executable is unsigned. Microsoft Defender SmartScreen can warn at
+download or launch while the file builds reputation for its SHA-256 hash.
+The [v3.3.1 release notes](https://github.com/Thejuampi/ibt-asm/releases/tag/v3.3.1)
+list the sizes and SHA-256 checksums for both downloads.
 
 ## How stability is determined
 
